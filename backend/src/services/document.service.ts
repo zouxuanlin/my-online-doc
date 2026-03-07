@@ -7,6 +7,7 @@ export interface CreateDocumentInput {
   title: string;
   content?: string;
   folderId?: string;
+  tagIds?: string[];
 }
 
 export interface UpdateDocumentInput {
@@ -19,15 +20,31 @@ export interface UpdateDocumentInput {
 export async function createDocument(
   ownerId: string,
   input: CreateDocumentInput
-): Promise<Document> {
-  return prisma.document.create({
+): Promise<Document & { tags: any[] }> {
+  const document = await prisma.document.create({
     data: {
       title: input.title || '无标题文档',
       content: input.content,
       ownerId,
       folderId: input.folderId,
     },
+    include: {
+      tags: { include: { tag: true } },
+    },
   });
+
+  // 如果有关联的标签，创建关联
+  if (input.tagIds && input.tagIds.length > 0) {
+    await prisma.documentTag.createMany({
+      data: input.tagIds.map((tagId) => ({
+        documentId: document.id,
+        tagId,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  return document;
 }
 
 // 获取文档列表
@@ -72,6 +89,7 @@ export async function getDocumentList(
     where,
     include: {
       folder: { select: { id: true, name: true } },
+      tags: { include: { tag: true } },
       _count: { select: { versions: true } },
     },
     orderBy: { updatedAt: 'desc' },

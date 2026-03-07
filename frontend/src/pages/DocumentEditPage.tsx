@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toaster';
 import { documentService } from '@/services/document.service';
+import { tagService } from '@/services/tag.service';
+import { TagSelector } from '@/components/TagSelector';
 import type { Document } from '@/services/document.service';
+import type { Tag } from '@/services/tag.service';
 
 export default function DocumentEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +17,7 @@ export default function DocumentEditPage() {
   const [document, setDocument] = useState<Document | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -33,9 +37,11 @@ export default function DocumentEditPage() {
     try {
       setLoading(true);
       const doc = await documentService.getById(id);
+      const tags = await tagService.getDocumentTags(id);
       setDocument(doc);
       setTitle(doc.title);
       setContent(doc.content || '');
+      setSelectedTags(tags.map((t: Tag) => t.id));
     } catch (err: any) {
       showError('加载文档失败');
       navigate('/documents');
@@ -48,11 +54,12 @@ export default function DocumentEditPage() {
     try {
       setSaving(true);
       if (id === 'new') {
-        const doc = await documentService.create({ title, content });
+        const doc = await documentService.create({ title, content, tagIds: selectedTags });
         success('文档创建成功');
         navigate(`/documents/${doc.id}`);
       } else if (id) {
         await documentService.update(id, { title, content });
+        await tagService.updateDocumentTags(id, selectedTags);
         success('文档保存成功');
       }
     } catch (err: any) {
@@ -60,6 +67,10 @@ export default function DocumentEditPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleTagsChange = (tagIds: string[]) => {
+    setSelectedTags(tagIds);
   };
 
   if (loading) {
@@ -86,10 +97,15 @@ export default function DocumentEditPage() {
               placeholder="文档标题"
             />
           </div>
-          <Button onClick={handleSave} disabled={saving}>
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? '保存中...' : '保存'}
-          </Button>
+          <div className="flex items-center gap-2">
+            {id && id !== 'new' && (
+              <TagSelector documentId={id} value={selectedTags} onChange={handleTagsChange} />
+            )}
+            <Button onClick={handleSave} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? '保存中...' : '保存'}
+            </Button>
+          </div>
         </div>
       </div>
       <div className="flex-1 overflow-auto p-6">

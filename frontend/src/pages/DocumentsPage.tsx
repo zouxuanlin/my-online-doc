@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Plus, Search, Trash2, RotateCcw, Eye, FileIcon } from 'lucide-react';
+import { FileText, Plus, Search, Trash2, RotateCcw, Eye, FileIcon, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuthStore } from '@/stores/authStore';
 import { documentService, Document as DocType } from '@/services/document.service';
 import { useToast } from '@/components/ui/toaster';
-import { formatDistanceToNow } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import type { Tag as TagType } from '@/services/tag.service';
 
 export default function DocumentsPage() {
   const navigate = useNavigate();
@@ -185,6 +184,25 @@ export default function DocumentsPage() {
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                   {doc.content || '无内容'}
                 </p>
+                {/* 标签显示 */}
+                {(doc as any).tags && (doc as any).tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {((doc as any).tags || []).slice(0, 3).map((t: any) => (
+                      <span
+                        key={t.tag.id}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded"
+                      >
+                        <Tag className="h-2.5 w-2.5" />
+                        {t.tag.name}
+                      </span>
+                    ))}
+                    {((doc as any).tags || []).length > 3 && (
+                      <span className="text-xs text-muted-foreground">
+                        +{((doc as any).tags || []).length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>
                     {new Date(doc.updatedAt).toLocaleDateString('zh-CN')}

@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.routes';
 import documentRoutes from './routes/document.routes';
 import folderRoutes from './routes/folder.routes';
 import uploadRoutes from './routes/upload.routes';
+import tagRoutes from './routes/tag.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { authMiddleware } from './middleware/auth.middleware';
 
@@ -36,6 +37,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/documents', authMiddleware, documentRoutes);
 app.use('/api/v1/folders', authMiddleware, folderRoutes);
 app.use('/api/v1/upload', authMiddleware, uploadRoutes);
+app.use('/api/v1/tags', authMiddleware, tagRoutes);
 
 // 健康检查
 app.get('/health', (req, res) => {

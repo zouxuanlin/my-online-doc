@@ -25,6 +25,7 @@ model User {
   shares        Share[]        @relation("SharedBy")
   receivedShares Share[]       @relation("SharedWith")
   refreshTokens RefreshToken[]
+  tags          Tag[]
 }
 
 // 刷新 Token 模型
@@ -53,6 +54,7 @@ model Document {
 
   versions DocumentVersion[]
   shares   Share[]
+  tags     DocumentTag[]
 
   @@index([ownerId])
   @@index([folderId])
@@ -105,6 +107,35 @@ model Share {
   @@unique([documentId, sharedWithEmail])
   @@index([documentId])
   @@index([sharedWithEmail])
+}
+
+// 标签模型
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents DocumentTag[]
+
+  @@unique([ownerId, name])
+  @@index([ownerId])
+}
+
+// 文档与标签的关联模型 (多对多)
+model DocumentTag {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tagId      String
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, tagId])
+  @@index([documentId])
+  @@index([tagId])
 }
 
 // 权限枚举
