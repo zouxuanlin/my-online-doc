@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents     Document[]     @relation("DocumentOwner")
+  folders       Folder[]
+  shares        Share[]        @relation("SharedBy")
+  receivedShares Share[]       @relation("SharedWith")
+  refreshTokens RefreshToken[]
+}
+
+// 刷新 Token 模型
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// 文档模型
+model Document {
+  id        String   @id @default(cuid())
+  title     String   @default("无标题文档")
+  content   String?
+  ownerId   String
+  owner     User     @relation("DocumentOwner", fields: [ownerId], references: [id])
+  folderId  String?
+  folder    Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  versions DocumentVersion[]
+  shares   Share[]
+
+  @@index([ownerId])
+  @@index([folderId])
+  @@index([isDeleted])
+}
+
+// 文档版本模型
+model DocumentVersion {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  content    String
+  version    Int
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, version])
+  @@index([documentId])
+}
+
+// 文件夹模型
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  parentId  String?
+  parent    Folder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Folder[] @relation("FolderHierarchy")
+  documents Document[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([parentId])
+}
+
+// 分享模型
+model Share {
+  id          String   @id @default(cuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  sharedById  String
+  sharedBy    User     @relation("SharedBy", fields: [sharedById], references: [id])
+  sharedWithEmail String
+  sharedWith  User     @relation("SharedWith", fields: [sharedWithEmail], references: [email])
+  permission  String   @default("READ")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([documentId, sharedWithEmail])
+  @@index([documentId])
+  @@index([sharedWithEmail])
+}
+
+// 权限枚举
+// enum Permission {
+//   READ
+//   WRITE
+//   ADMIN
+// }
