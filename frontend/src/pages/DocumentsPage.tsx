@@ -42,7 +42,7 @@ export default function DocumentsPage() {
     try {
       setLoading(true);
       const result = await documentService.getList({
-        includeDeleted: showDeleted,
+        onlyDeleted: showDeleted,
       });
       setDocuments(result.list || []);
     } catch (err: any) {

@@ -37,7 +37,7 @@ export const documentService = {
     search?: string;
     page?: number;
     pageSize?: number;
-    includeDeleted?: boolean;
+    onlyDeleted?: boolean;
   }) {
     const response = await apiClient.get('/documents', { params });
     return response.data.data;

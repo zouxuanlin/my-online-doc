@@ -29,14 +29,14 @@ export const createDocument = async (req: Request, res: Response) => {
 export const getDocumentList = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { folderId, search, page, pageSize, includeDeleted } = req.query;
+    const { folderId, search, page, pageSize, onlyDeleted } = req.query;
 
     const result = await documentService.getDocumentList(user.userId, {
       folderId: folderId as string | undefined,
       search: search as string | undefined,
       page: page ? parseInt(page as string) : 1,
       pageSize: pageSize ? parseInt(pageSize as string) : 20,
-      includeDeleted: includeDeleted === 'true',
+      onlyDeleted: onlyDeleted === 'true',
     });
 
     res.json({

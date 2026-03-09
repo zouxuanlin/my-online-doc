@@ -46,28 +46,30 @@ export async function createDocument(
   return document;
 }
 
+export interface DocumentListOptions {
+  folderId?: string | null;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+  onlyDeleted?: boolean;
+}
+
 // 获取文档列表
 export async function getDocumentList(
   userId: string,
-  options?: {
-    folderId?: string | null;
-    search?: string;
-    page?: number;
-    pageSize?: number;
-    includeDeleted?: boolean;
-  }
+  options?: DocumentListOptions
 ) {
   const {
     folderId,
     search,
     page = 1,
     pageSize = 20,
-    includeDeleted = false,
+    onlyDeleted = false,
   } = options || {};
 
   const where: any = {
     ownerId: userId,
-    isDeleted: includeDeleted ? undefined : false,
+    isDeleted: onlyDeleted ? true : false,
   };
 
   // 文件夹筛选
