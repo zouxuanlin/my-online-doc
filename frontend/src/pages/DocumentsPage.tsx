@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Plus, Search, Trash2, RotateCcw, Eye, FileIcon, Tag, Edit2 } from 'lucide-react';
+import { FileText, Plus, Search, Trash2, RotateCcw, Eye, FileIcon, Tag, Edit2, Archive, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,18 +31,20 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleted, setShowDeleted] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadDocuments();
-  }, [showDeleted]);
+  }, [showDeleted, showArchived]);
 
   const loadDocuments = async () => {
     try {
       setLoading(true);
       const result = await documentService.getList({
         onlyDeleted: showDeleted,
+        onlyArchived: showArchived && !showDeleted,
       });
       setDocuments(result.list || []);
     } catch (err: any) {
@@ -101,6 +103,26 @@ export default function DocumentsPage() {
     }
   };
 
+  const handleArchiveDocument = async (id: string) => {
+    try {
+      await documentService.archive(id);
+      toast({ description: '文档已归档' });
+      loadDocuments();
+    } catch (err: any) {
+      showError(err.message || '归档失败');
+    }
+  };
+
+  const handleUnarchiveDocument = async (id: string) => {
+    try {
+      await documentService.unarchive(id);
+      toast({ description: '已取消归档' });
+      loadDocuments();
+    } catch (err: any) {
+      showError(err.message || '操作失败');
+    }
+  };
+
   const filteredDocuments = documents.filter((doc) =>
     doc.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -110,7 +132,7 @@ export default function DocumentsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold mb-1">
-            {showDeleted ? '回收站' : '我的文档'}
+            {showDeleted ? '回收站' : showArchived ? '已归档' : '我的文档'}
           </h1>
           <p className="text-muted-foreground">
             共 {documents.length} 个文档
@@ -118,13 +140,20 @@ export default function DocumentsPage() {
         </div>
         <div className="flex gap-2">
           <Button
+            variant={showArchived && !showDeleted ? 'default' : 'outline'}
+            onClick={() => setShowArchived(!showArchived)}
+          >
+            <Package className="h-4 w-4 mr-2" />
+            已归档
+          </Button>
+          <Button
             variant={showDeleted ? 'default' : 'outline'}
             onClick={() => setShowDeleted(!showDeleted)}
           >
             <Trash2 className="h-4 w-4 mr-2" />
             {showDeleted ? '返回文档列表' : '回收站'}
           </Button>
-          {!showDeleted && (
+          {!showDeleted && !showArchived && (
             <Button onClick={handleCreateDocument}>
               <Plus className="h-4 w-4 mr-2" />
               新建文档
@@ -151,7 +180,7 @@ export default function DocumentsPage() {
         <div className="text-center py-12">
           <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">
-            {searchTerm ? '没有找到匹配的文档' : showDeleted ? '回收站为空' : '暂无文档，点击新建开始创作'}
+            {searchTerm ? '没有找到匹配的文档' : showDeleted ? '回收站为空' : showArchived ? '没有已归档的文档' : '暂无文档，点击新建开始创作'}
           </p>
         </div>
       ) : (
@@ -208,6 +237,45 @@ export default function DocumentsPage() {
                           </Tooltip>
                         </TooltipProvider>
                       </>
+                    ) : showArchived ? (
+                      <>
+                        <TooltipProvider delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleUnarchiveDocument(doc.id);
+                                }}
+                              >
+                                <Archive className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>取消归档</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteClick(doc.id);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>删除文档</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </>
                     ) : (
                       <>
                         <TooltipProvider delayDuration={200}>
@@ -226,6 +294,24 @@ export default function DocumentsPage() {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>编辑文档</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleArchiveDocument(doc.id);
+                                }}
+                              >
+                                <Archive className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>归档文档</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                         <TooltipProvider delayDuration={200}>

@@ -33,4 +33,13 @@ router.get('/:id/versions', documentController.getDocumentVersions);
 // 回滚到指定版本
 router.post('/:id/versions/:versionId/rollback', documentController.rollbackToVersion);
 
+// 归档文档
+router.post('/:id/archive', documentController.archiveDocument);
+
+// 取消归档
+router.post('/:id/unarchive', documentController.unarchiveDocument);
+
+// 获取归档文档
+router.get('/archive', documentController.getDocumentList);
+
 export default router;

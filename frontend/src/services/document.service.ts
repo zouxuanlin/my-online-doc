@@ -7,6 +7,8 @@ export interface Document {
   ownerId: string;
   folderId: string | null;
   isDeleted: boolean;
+  isArchived: boolean;
+  archivedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +40,7 @@ export const documentService = {
     page?: number;
     pageSize?: number;
     onlyDeleted?: boolean;
+    onlyArchived?: boolean;
   }) {
     const response = await apiClient.get('/documents', { params });
     return response.data.data;
@@ -82,6 +85,18 @@ export const documentService = {
   // 回滚到指定版本
   async rollback(id: string, versionId: string) {
     const response = await apiClient.post(`/documents/${id}/versions/${versionId}/rollback`);
+    return response.data.data.document;
+  },
+
+  // 归档文档
+  async archive(id: string) {
+    const response = await apiClient.post(`/documents/${id}/archive`);
+    return response.data.data.document;
+  },
+
+  // 取消归档
+  async unarchive(id: string) {
+    const response = await apiClient.post(`/documents/${id}/unarchive`);
     return response.data.data.document;
   },
 };

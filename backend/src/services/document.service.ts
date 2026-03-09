@@ -52,6 +52,7 @@ export interface DocumentListOptions {
   page?: number;
   pageSize?: number;
   onlyDeleted?: boolean;
+  onlyArchived?: boolean;
 }
 
 // 获取文档列表
@@ -65,12 +66,21 @@ export async function getDocumentList(
     page = 1,
     pageSize = 20,
     onlyDeleted = false,
+    onlyArchived = false,
   } = options || {};
 
   const where: any = {
     ownerId: userId,
     isDeleted: onlyDeleted ? true : false,
   };
+
+  // 归档筛选
+  if (onlyArchived) {
+    where.isArchived = true;
+  } else if (!onlyDeleted) {
+    // 如果不是回收站视图，则排除已删除和已归档的文档
+    where.isArchived = false;
+  }
 
   // 文件夹筛选
   if (folderId !== undefined) {
@@ -298,4 +308,36 @@ export async function checkDocumentPermission(
     permissionLevels[share.permission] >=
     permissionLevels[requiredPermission]
   );
+}
+
+// 归档文档
+export async function archiveDocument(
+  documentId: string,
+  userId: string
+): Promise<Document> {
+  await getDocumentById(documentId, userId);
+
+  return prisma.document.update({
+    where: { id: documentId },
+    data: {
+      isArchived: true,
+      archivedAt: new Date(),
+    },
+  });
+}
+
+// 取消归档
+export async function unarchiveDocument(
+  documentId: string,
+  userId: string
+): Promise<Document> {
+  await getDocumentById(documentId, userId);
+
+  return prisma.document.update({
+    where: { id: documentId },
+    data: {
+      isArchived: false,
+      archivedAt: null,
+    },
+  });
 }

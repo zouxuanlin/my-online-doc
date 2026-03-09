@@ -29,7 +29,7 @@ export const createDocument = async (req: Request, res: Response) => {
 export const getDocumentList = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { folderId, search, page, pageSize, onlyDeleted } = req.query;
+    const { folderId, search, page, pageSize, onlyDeleted, onlyArchived } = req.query;
 
     const result = await documentService.getDocumentList(user.userId, {
       folderId: folderId as string | undefined,
@@ -37,6 +37,7 @@ export const getDocumentList = async (req: Request, res: Response) => {
       page: page ? parseInt(page as string) : 1,
       pageSize: pageSize ? parseInt(pageSize as string) : 20,
       onlyDeleted: onlyDeleted === 'true',
+      onlyArchived: onlyArchived === 'true',
     });
 
     res.json({
@@ -174,6 +175,42 @@ export const rollbackToVersion = async (req: Request, res: Response) => {
       code: 'SUCCESS',
       data: { document },
       message: '已回滚到指定版本',
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 归档文档
+export const archiveDocument = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const { id } = req.params;
+
+    const document = await documentService.archiveDocument(id, user.userId);
+
+    res.json({
+      code: 'SUCCESS',
+      data: { document },
+      message: '文档已归档',
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 取消归档
+export const unarchiveDocument = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const { id } = req.params;
+
+    const document = await documentService.unarchiveDocument(id, user.userId);
+
+    res.json({
+      code: 'SUCCESS',
+      data: { document },
+      message: '已取消归档',
     });
   } catch (error) {
     throw error;
