@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { Folder, Plus, Trash2, Edit2, ChevronRight, ChevronDown, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/toaster';
 import { folderService, type Folder as FolderType } from '@/services/folder.service';
 import { documentService, type Document } from '@/services/document.service';
@@ -152,29 +158,43 @@ export default function FoldersPage() {
               {folder._count?.documents || 0}
             </span>
             <div className="flex items-center gap-1 opacity-0 hover:opacity-100 transition-opacity">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditingFolderId(folder.id);
-                  setEditingName(folder.name);
-                }}
-              >
-                <Edit2 className="h-3 w-3" />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6 text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteFolder(folder.id);
-                }}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingFolderId(folder.id);
+                        setEditingName(folder.name);
+                      }}
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>重命名</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6 text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFolder(folder.id);
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>删除文件夹</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
           {isExpanded && children.length > 0 && (
