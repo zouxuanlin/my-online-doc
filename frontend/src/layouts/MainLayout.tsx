@@ -1,8 +1,9 @@
 import { ReactNode } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FileText, LogOut, User, FolderOpen, Tag } from 'lucide-react';
+import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
+import { useThemeStore } from '@/stores/themeStore';
 import { useToast } from '@/components/ui/toaster';
 import { authService } from '@/services/auth.service';
 
@@ -14,6 +15,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, refreshToken, logout } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
   const { success, error: showError } = useToast();
 
   const handleLogout = async () => {
@@ -83,7 +85,19 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <FileText className="h-6 w-6 text-primary" />
           </div>
           <div className="flex-1" />
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              title={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
                 <User className="h-4 w-4 text-white" />
