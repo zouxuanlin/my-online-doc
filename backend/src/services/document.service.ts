@@ -77,9 +77,12 @@ export async function getDocumentList(
     where.folderId = folderId;
   }
 
-  // 搜索
+  // 全文搜索（标题 + 内容）
   if (search) {
-    where.title = { contains: search };
+    where.OR = [
+      { title: { contains: search } },
+      { content: { contains: search } },
+    ];
   }
 
   // 获取总数
