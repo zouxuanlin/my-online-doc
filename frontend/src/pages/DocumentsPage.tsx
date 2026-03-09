@@ -10,6 +10,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAuthStore } from '@/stores/authStore';
 import { documentService, Document as DocType } from '@/services/document.service';
 import { useToast } from '@/components/ui/toaster';
@@ -23,6 +31,8 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleted, setShowDeleted] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadDocuments();
@@ -63,9 +73,21 @@ export default function DocumentsPage() {
         await documentService.delete(id);
         toast({ description: '文档已移动到回收站' });
       }
+      setDeleteConfirmOpen(false);
       loadDocuments();
     } catch (err: any) {
       showError(err.message || '操作失败');
+    }
+  };
+
+  const handleDeleteClick = (id: string) => {
+    setDocumentToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (documentToDelete) {
+      handleDeleteDocument(documentToDelete);
     }
   };
 
@@ -176,7 +198,7 @@ export default function DocumentsPage() {
                                 className="h-8 w-8 text-destructive"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleDeleteDocument(doc.id);
+                                  handleDeleteClick(doc.id);
                                 }}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -215,7 +237,7 @@ export default function DocumentsPage() {
                                 className="h-8 w-8 text-destructive"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleDeleteDocument(doc.id);
+                                  handleDeleteClick(doc.id);
                                 }}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -264,6 +286,28 @@ export default function DocumentsPage() {
           ))}
         </div>
       )}
+
+      {/* 删除确认对话框 */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认删除文档</DialogTitle>
+            <DialogDescription>
+              {showDeleted
+                ? '确定要永久删除此文档吗？此操作不可逆，文档将被彻底删除。'
+                : '确定要删除此文档吗？文档将被移动到回收站。'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+              取消
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              删除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
