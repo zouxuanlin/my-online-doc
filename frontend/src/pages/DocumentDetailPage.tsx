@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit2, Clock, Star } from 'lucide-react';
+import { ArrowLeft, Edit2, Clock, Star, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/toaster';
 import { useRecentStore } from '@/stores/recentStore';
 import { bookmarkService } from '@/services/bookmark.service';
 import { documentService } from '@/services/document.service';
+import { exportDocument } from '@/services/export.service';
 import type { Document } from '@/services/document.service';
 
 export default function DocumentDetailPage() {
@@ -74,6 +81,16 @@ export default function DocumentDetailPage() {
     navigate(`/documents/${id}/edit`);
   };
 
+  const handleExport = async (format: 'markdown' | 'pdf' | 'html' | 'word') => {
+    if (!document) return;
+    try {
+      await exportDocument(document, format);
+      success(`已导出为 ${format.toUpperCase()} 格式`);
+    } catch (err: any) {
+      showError(err.message || '导出失败');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -98,6 +115,28 @@ export default function DocumentDetailPage() {
             <h1 className="text-xl font-semibold">{document.title}</h1>
           </div>
           <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  导出
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleExport('markdown')}>
+                  导出为 Markdown
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                  导出为 PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('html')}>
+                  导出为 HTML
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('word')}>
+                  导出为 Word
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant={isBookmarked ? 'default' : 'outline'}
               size="sm"
