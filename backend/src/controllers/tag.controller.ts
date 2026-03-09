@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import * as tagService from '../services/tag.service';
 import { AppError } from '../middleware/error.middleware';
 
 // 创建标签
-export const createTag = async (req: Request, res: Response) => {
+export const createTag = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = (req as any).user;
     const { name } = req.body;
@@ -20,12 +20,12 @@ export const createTag = async (req: Request, res: Response) => {
       message: '标签创建成功',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 // 获取所有标签
-export const getTags = async (req: Request, res: Response) => {
+export const getTags = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = (req as any).user;
 
@@ -36,12 +36,12 @@ export const getTags = async (req: Request, res: Response) => {
       data: { tags },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 // 更新标签
-export const updateTag = async (req: Request, res: Response) => {
+export const updateTag = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = (req as any).user;
     const { id } = req.params;
@@ -55,12 +55,12 @@ export const updateTag = async (req: Request, res: Response) => {
       message: '标签更新成功',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 // 删除标签
-export const deleteTag = async (req: Request, res: Response) => {
+export const deleteTag = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = (req as any).user;
     const { id } = req.params;
@@ -72,7 +72,7 @@ export const deleteTag = async (req: Request, res: Response) => {
       message: '标签已删除',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 

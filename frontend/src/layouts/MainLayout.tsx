@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FileText, LogOut, User, FolderOpen } from 'lucide-react';
+import { FileText, LogOut, User, FolderOpen, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/components/ui/toaster';
@@ -61,6 +61,15 @@ export default function MainLayout({ children }: MainLayoutProps) {
             >
               <FolderOpen className="h-4 w-4 mr-2" />
               文件夹
+            </Button>
+          </Link>
+          <Link to="/tags">
+            <Button
+              variant={isActive('/tags') ? 'secondary' : 'ghost'}
+              className="w-full justify-start mb-1"
+            >
+              <Tag className="h-4 w-4 mr-2" />
+              标签管理
             </Button>
           </Link>
         </nav>

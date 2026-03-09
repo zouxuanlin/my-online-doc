@@ -8,6 +8,7 @@ import DocumentsPage from '@/pages/DocumentsPage';
 import DocumentDetailPage from '@/pages/DocumentDetailPage';
 import DocumentEditPage from '@/pages/DocumentEditPage';
 import FoldersPage from '@/pages/FoldersPage';
+import TagsPage from '@/pages/TagsPage';
 
 function App() {
   return (
@@ -88,6 +89,26 @@ function App() {
             <AuthGuard>
               <MainLayout>
                 <FoldersPage />
+              </MainLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/tags"
+          element={
+            <AuthGuard>
+              <MainLayout>
+                <TagsPage />
+              </MainLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/tags/:tagId"
+          element={
+            <AuthGuard>
+              <MainLayout>
+                <DocumentsPage />
               </MainLayout>
             </AuthGuard>
           }
