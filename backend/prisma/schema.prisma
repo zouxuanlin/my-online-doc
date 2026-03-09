@@ -26,6 +26,7 @@ model User {
   receivedShares Share[]       @relation("SharedWith")
   refreshTokens RefreshToken[]
   tags          Tag[]
+  bookmarks     Bookmark[]
 }
 
 // 刷新 Token 模型
@@ -52,9 +53,10 @@ model Document {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  versions DocumentVersion[]
-  shares   Share[]
-  tags     DocumentTag[]
+  versions  DocumentVersion[]
+  shares    Share[]
+  tags      DocumentTag[]
+  bookmarks Bookmark[]
 
   @@index([ownerId])
   @@index([folderId])
@@ -136,6 +138,20 @@ model DocumentTag {
   @@unique([documentId, tagId])
   @@index([documentId])
   @@index([tagId])
+}
+
+// 收藏模型
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String
+  documentId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, documentId])
+  @@index([userId])
+  @@index([documentId])
 }
 
 // 权限枚举

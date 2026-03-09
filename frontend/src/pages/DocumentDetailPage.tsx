@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit2, Clock } from 'lucide-react';
+import { ArrowLeft, Edit2, Clock, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toaster';
 import { useRecentStore } from '@/stores/recentStore';
+import { bookmarkService } from '@/services/bookmark.service';
 import { documentService } from '@/services/document.service';
 import type { Document } from '@/services/document.service';
 
@@ -14,6 +15,7 @@ export default function DocumentDetailPage() {
   const { addRecent } = useRecentStore();
   const [document, setDocument] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   useEffect(() => {
     loadDocument();
@@ -23,8 +25,36 @@ export default function DocumentDetailPage() {
     // 加载成功后记录最近浏览
     if (document) {
       addRecent({ id: document.id, title: document.title });
+      checkBookmarkStatus();
     }
   }, [document]);
+
+  const checkBookmarkStatus = async () => {
+    if (!id) return;
+    try {
+      const status = await bookmarkService.checkStatus(id);
+      setIsBookmarked(status);
+    } catch (err: any) {
+      // ignore error
+    }
+  };
+
+  const handleToggleBookmark = async () => {
+    if (!id) return;
+    try {
+      if (isBookmarked) {
+        await bookmarkService.remove(id);
+        setIsBookmarked(false);
+        success('已取消收藏');
+      } else {
+        await bookmarkService.add(id);
+        setIsBookmarked(true);
+        success('已添加收藏');
+      }
+    } catch (err: any) {
+      showError(err.message || '操作失败');
+    }
+  };
 
   const loadDocument = async () => {
     if (!id) return;
@@ -68,6 +98,14 @@ export default function DocumentDetailPage() {
             <h1 className="text-xl font-semibold">{document.title}</h1>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant={isBookmarked ? 'default' : 'outline'}
+              size="sm"
+              onClick={handleToggleBookmark}
+            >
+              <Star className={`h-4 w-4 mr-2 ${isBookmarked ? 'fill-white' : ''}`} />
+              {isBookmarked ? '已收藏' : '收藏'}
+            </Button>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span>最后修改：{new Date(document.updatedAt).toLocaleString('zh-CN')}</span>

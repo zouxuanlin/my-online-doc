@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun, Keyboard, Clock, X } from 'lucide-react';
+import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun, Keyboard, Clock, X, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeStore } from '@/stores/themeStore';
@@ -102,6 +102,15 @@ export default function MainLayout({ children }: MainLayoutProps) {
             >
               <Tag className="h-4 w-4 mr-2" />
               标签管理
+            </Button>
+          </Link>
+          <Link to="/bookmarks">
+            <Button
+              variant={isActive('/bookmarks') ? 'secondary' : 'ghost'}
+              className="w-full justify-start mb-1"
+            >
+              <Star className="h-4 w-4 mr-2" />
+              我的收藏
             </Button>
           </Link>
         </nav>

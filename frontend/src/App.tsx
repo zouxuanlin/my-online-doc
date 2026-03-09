@@ -10,6 +10,7 @@ import DocumentDetailPage from '@/pages/DocumentDetailPage';
 import DocumentEditPage from '@/pages/DocumentEditPage';
 import FoldersPage from '@/pages/FoldersPage';
 import TagsPage from '@/pages/TagsPage';
+import BookmarksPage from '@/pages/BookmarksPage';
 
 function App() {
   return (
@@ -111,6 +112,16 @@ function App() {
               <AuthGuard>
                 <MainLayout>
                   <DocumentsPage />
+                </MainLayout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/bookmarks"
+            element={
+              <AuthGuard>
+                <MainLayout>
+                  <BookmarksPage />
                 </MainLayout>
               </AuthGuard>
             }
