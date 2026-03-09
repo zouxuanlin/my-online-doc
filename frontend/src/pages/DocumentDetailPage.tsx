@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toaster';
+import { useRecentStore } from '@/stores/recentStore';
 import { documentService } from '@/services/document.service';
 import type { Document } from '@/services/document.service';
 
@@ -10,12 +11,20 @@ export default function DocumentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
+  const { addRecent } = useRecentStore();
   const [document, setDocument] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDocument();
   }, [id]);
+
+  useEffect(() => {
+    // 加载成功后记录最近浏览
+    if (document) {
+      addRecent({ id: document.id, title: document.title });
+    }
+  }, [document]);
 
   const loadDocument = async () => {
     if (!id) return;

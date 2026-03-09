@@ -1,9 +1,10 @@
 import { ReactNode, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun, Keyboard } from 'lucide-react';
+import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun, Keyboard, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeStore } from '@/stores/themeStore';
+import { useRecentStore } from '@/stores/recentStore';
 import { useToast } from '@/components/ui/toaster';
 import { authService } from '@/services/auth.service';
 import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
@@ -18,6 +19,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const location = useLocation();
   const { user, refreshToken, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
+  const { recents, removeRecent, clearRecents } = useRecentStore();
   const { success, error: showError } = useToast();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
@@ -103,6 +105,46 @@ export default function MainLayout({ children }: MainLayoutProps) {
             </Button>
           </Link>
         </nav>
+
+        {/* 最近浏览 */}
+        {recents.length > 0 && (
+          <div className="mt-6 px-2">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>最近浏览</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={clearRecents}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {recents.map((recent) => (
+                <button
+                  key={recent.id}
+                  onClick={() => navigate(`/documents/${recent.id}`)}
+                  className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-muted group flex items-center justify-between"
+                >
+                  <span className="truncate flex-1">{recent.title}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeRecent(recent.id);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </aside>
 
       {/* 主内容区 */}
