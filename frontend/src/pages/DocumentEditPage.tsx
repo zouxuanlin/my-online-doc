@@ -43,7 +43,7 @@ export default function DocumentEditPage() {
       setContent(doc.content || '');
       setSelectedTags(tags.map((t: Tag) => t.id));
     } catch (err: any) {
-      showError('加载文档失败');
+      showError(err.message || '加载文档失败');
       navigate('/documents');
     } finally {
       setLoading(false);
@@ -63,7 +63,7 @@ export default function DocumentEditPage() {
         success('文档保存成功');
       }
     } catch (err: any) {
-      showError('保存失败');
+      showError(err.message || '保存失败');
     } finally {
       setSaving(false);
     }

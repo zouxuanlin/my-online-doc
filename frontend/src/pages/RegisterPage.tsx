@@ -47,8 +47,7 @@ export default function RegisterPage() {
       success('注册成功');
       navigate('/documents');
     } catch (err: any) {
-      const message = err.response?.data?.message || '注册失败';
-      showError(message);
+      showError(err.message || '注册失败');
     } finally {
       setLoading(false);
     }

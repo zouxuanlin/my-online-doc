@@ -30,7 +30,7 @@ export default function DocumentsPage() {
       });
       setDocuments(result.list || []);
     } catch (err: any) {
-      showError('加载文档失败');
+      showError(err.message || '加载文档失败');
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ export default function DocumentsPage() {
       });
       navigate(`/documents/${doc.id}/edit`);
     } catch (err: any) {
-      showError('创建文档失败');
+      showError(err.message || '创建文档失败');
     }
   };
 
@@ -59,7 +59,7 @@ export default function DocumentsPage() {
       }
       loadDocuments();
     } catch (err: any) {
-      showError('操作失败');
+      showError(err.message || '操作失败');
     }
   };
 
@@ -69,7 +69,7 @@ export default function DocumentsPage() {
       toast({ description: '文档已恢复' });
       loadDocuments();
     } catch (err: any) {
-      showError('恢复失败');
+      showError(err.message || '恢复失败');
     }
   };
 

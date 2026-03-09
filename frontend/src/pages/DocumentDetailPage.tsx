@@ -24,7 +24,7 @@ export default function DocumentDetailPage() {
       const doc = await documentService.getById(id);
       setDocument(doc);
     } catch (err: any) {
-      showError('加载文档失败');
+      showError(err.message || '加载文档失败');
       navigate('/documents');
     } finally {
       setLoading(false);

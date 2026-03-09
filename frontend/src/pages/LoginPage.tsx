@@ -32,8 +32,7 @@ export default function LoginPage() {
       login(result.user, result.tokens.accessToken, result.tokens.refreshToken);
       navigate('/documents');
     } catch (err: any) {
-      const message = err.response?.data?.message || '登录失败，请检查邮箱和密码';
-      showError(message);
+      showError(err.message || '登录失败，请检查邮箱和密码');
     } finally {
       setLoading(false);
     }

@@ -25,12 +25,27 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // 401 错误 - Token 过期，跳转到登录页
     if (error.response?.status === 401) {
-      // Token 过期，尝试刷新或跳转到登录页
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       window.location.href = '/login';
     }
+
+    // 503/500 错误 - 服务器不可用，显示错误提示
+    if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK' || !error.response) {
+      const networkError = new Error('无法连接到服务器，请检查后端服务是否正常运行');
+      networkError.name = 'NetworkError';
+      return Promise.reject(networkError);
+    }
+
+    // 传递后端返回的错误信息
+    if (error.response?.data?.message) {
+      const apiError = new Error(error.response.data.message);
+      apiError.name = error.response.data.code || 'API_ERROR';
+      return Promise.reject(apiError);
+    }
+
     return Promise.reject(error);
   }
 );

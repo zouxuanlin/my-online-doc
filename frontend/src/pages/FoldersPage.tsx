@@ -28,7 +28,7 @@ export default function FoldersPage() {
       const data = await folderService.getAll();
       setFolders(data);
     } catch (err: any) {
-      showError('加载文件夹失败');
+      showError(err.message || '加载文件夹失败');
     }
   };
 
@@ -48,7 +48,7 @@ export default function FoldersPage() {
         setExpandedFolders(prev => new Set(prev).add(parentId));
       }
     } catch (err: any) {
-      showError('创建文件夹失败');
+      showError(err.message || '创建文件夹失败');
     }
   };
 
@@ -58,7 +58,7 @@ export default function FoldersPage() {
       success('文件夹已删除');
       loadFolders();
     } catch (err: any) {
-      showError(err.response?.data?.message || '删除失败，文件夹可能不为空');
+      showError(err.message || '删除失败，文件夹可能不为空');
     }
   };
 
@@ -74,7 +74,7 @@ export default function FoldersPage() {
       setEditingFolderId(null);
       loadFolders();
     } catch (err: any) {
-      showError('重命名失败');
+      showError(err.message || '重命名失败');
     }
   };
 
@@ -97,7 +97,7 @@ export default function FoldersPage() {
       const result = await documentService.getList({ folderId });
       setFolderDocuments(result.list || []);
     } catch (err: any) {
-      showError('加载文档失败');
+      showError(err.message || '加载文档失败');
     }
   };
 
