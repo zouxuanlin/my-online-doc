@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toaster';
@@ -9,17 +9,21 @@ import { tagService } from '@/services/tag.service';
 import { TagSelector } from '@/components/TagSelector';
 import type { Document } from '@/services/document.service';
 import type { Tag } from '@/services/tag.service';
+import MDEditor from '@uiw/react-md-editor';
+import { useThemeStore } from '@/stores/themeStore';
 
 export default function DocumentEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
+  const { theme } = useThemeStore();
   const [document, setDocument] = useState<Document | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [preview, setPreview] = useState(false);
 
   useEffect(() => {
     if (id === 'new') {
@@ -107,13 +111,27 @@ export default function DocumentEditPage() {
         </div>
       </div>
       <div className="flex-1 overflow-auto p-6">
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="开始输入内容..."
-          className="w-full h-full resize-none outline-none text-base leading-relaxed"
-          style={{ minHeight: '400px' }}
-        />
+        <div className="h-full">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-muted-foreground">Markdown 编辑模式</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPreview(!preview)}
+            >
+              {preview ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+              {preview ? '编辑' : '预览'}
+            </Button>
+          </div>
+          <MDEditor
+            value={content}
+            onChange={(val) => setContent(val || '')}
+            preview={preview ? 'preview' : 'edit'}
+            height="100%"
+            enableScroll={true}
+            data-color-mode={theme}
+          />
+        </div>
       </div>
     </div>
   );
