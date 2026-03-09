@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Clock } from 'lucide-react';
+import { ArrowLeft, Edit2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toaster';
 import { documentService } from '@/services/document.service';
@@ -31,6 +31,10 @@ export default function DocumentDetailPage() {
     }
   };
 
+  const handleEdit = () => {
+    navigate(`/documents/${id}/edit`);
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -54,9 +58,15 @@ export default function DocumentDetailPage() {
             </Button>
             <h1 className="text-xl font-semibold">{document.title}</h1>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>最后修改：{new Date(document.updatedAt).toLocaleString('zh-CN')}</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>最后修改：{new Date(document.updatedAt).toLocaleString('zh-CN')}</span>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleEdit}>
+              <Edit2 className="h-4 w-4 mr-2" />
+              编辑
+            </Button>
           </div>
         </div>
       </div>
