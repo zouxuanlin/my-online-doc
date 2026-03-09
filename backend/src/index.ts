@@ -56,3 +56,12 @@ app.listen(PORT, () => {
   console.log(`🚀 服务器启动成功：http://localhost:${PORT}`);
   console.log(`📝 环境：${process.env.NODE_ENV || 'development'}`);
 });
+
+// 处理未捕获的异常和拒绝
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});

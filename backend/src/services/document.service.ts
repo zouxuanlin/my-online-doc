@@ -40,7 +40,6 @@ export async function createDocument(
         documentId: document.id,
         tagId,
       })),
-      skipDuplicates: true,
     });
   }
 

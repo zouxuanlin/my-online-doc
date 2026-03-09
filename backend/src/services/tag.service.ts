@@ -182,7 +182,6 @@ export async function updateDocumentTags(
         documentId,
         tagId,
       })),
-      skipDuplicates: true,
     });
   }
 }

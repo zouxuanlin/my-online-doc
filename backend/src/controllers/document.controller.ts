@@ -6,12 +6,13 @@ import { AppError } from '../middleware/error.middleware';
 export const createDocument = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { title, content, folderId } = req.body;
+    const { title, content, folderId, tagIds } = req.body;
 
     const document = await documentService.createDocument(user.userId, {
       title: title || '无标题文档',
       content,
       folderId,
+      tagIds,
     });
 
     res.status(201).json({

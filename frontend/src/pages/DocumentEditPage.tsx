@@ -98,9 +98,7 @@ export default function DocumentEditPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            {id && id !== 'new' && (
-              <TagSelector documentId={id} value={selectedTags} onChange={handleTagsChange} />
-            )}
+            <TagSelector documentId={id !== 'new' ? id : undefined} value={selectedTags} onChange={handleTagsChange} />
             <Button onClick={handleSave} disabled={saving}>
               <Save className="h-4 w-4 mr-2" />
               {saving ? '保存中...' : '保存'}

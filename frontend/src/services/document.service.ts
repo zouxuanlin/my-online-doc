@@ -15,6 +15,7 @@ export interface CreateDocumentInput {
   title?: string;
   content?: string;
   folderId?: string;
+  tagIds?: string[];
 }
 
 export interface UpdateDocumentInput {

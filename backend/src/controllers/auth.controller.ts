@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { ApiResponse } from '../types';
 import * as authService from '../services/auth.service';
 import { AppError } from '../middleware/error.middleware';
 
 // 用户注册
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password, name } = req.body;
 
@@ -33,12 +33,12 @@ export const register = async (req: Request, res: Response) => {
       message: '注册成功',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 // 用户登录
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
 
@@ -62,12 +62,12 @@ export const login = async (req: Request, res: Response) => {
       message: '登录成功',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 // 刷新令牌
-export const refreshToken = async (req: Request, res: Response) => {
+export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body;
 
@@ -83,12 +83,12 @@ export const refreshToken = async (req: Request, res: Response) => {
       message: '令牌刷新成功',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 // 登出
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body;
 
@@ -103,12 +103,12 @@ export const logout = async (req: Request, res: Response) => {
       message: '登出成功',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 // 获取当前用户信息
-export const getCurrentUser = async (req: Request, res: Response) => {
+export const getCurrentUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = (req as any).user;
 
@@ -119,6 +119,6 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       data: { user: userData },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
