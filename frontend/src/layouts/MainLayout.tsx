@@ -1,11 +1,13 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun } from 'lucide-react';
+import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun, Keyboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeStore } from '@/stores/themeStore';
 import { useToast } from '@/components/ui/toaster';
 import { authService } from '@/services/auth.service';
+import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -17,6 +19,32 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const { user, refreshToken, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const { success, error: showError } = useToast();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  // 快捷键处理
+  const handleSearch = () => {
+    // 触发搜索焦点，如果有搜索框的话
+    const searchInput = document.querySelector('input[placeholder*="搜索"]') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.focus();
+    }
+  };
+
+  const handleNewDocument = () => {
+    if (location.pathname.startsWith('/documents')) {
+      const newButton = document.querySelector('button:contains("新建文档")') as HTMLButtonElement;
+      if (newButton) newButton.click();
+    }
+  };
+
+  useKeyboardShortcuts({
+    onSearch: handleSearch,
+    onNewDocument: handleNewDocument,
+    onToggleSidebar: () => setShortcutsOpen(true),
+    onShowShortcuts: () => setShortcutsOpen(true),
+  });
+
+  const handleOpenShortcuts = () => setShortcutsOpen(true);
 
   const handleLogout = async () => {
     try {
@@ -89,6 +117,14 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <Button
               variant="ghost"
               size="icon"
+              onClick={handleOpenShortcuts}
+              title="快捷键 (?)"
+            >
+              <Keyboard className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={toggleTheme}
               title={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
             >
@@ -116,6 +152,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {/* 内容区 */}
         {children}
       </div>
+
+      {/* 快捷键帮助对话框 */}
+      <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </div>
   );
 }
