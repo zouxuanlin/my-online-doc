@@ -81,9 +81,12 @@ my-online-doc/
 - [x] 永久删除文档
 - [x] 恢复已删除文档
 - [x] 文档列表
-- [x] 文档搜索
+- [x] 文档搜索（全文搜索）
 - [x] 回收站功能
 - [x] 版本控制
+- [x] Markdown 编辑器
+- [x] 文档导出（PDF/Word/Markdown/HTML）
+- [x] 文档归档
 
 ### 3. 文件夹管理模块
 - [x] 创建文件夹
@@ -103,9 +106,11 @@ my-online-doc/
 - [x] 注册页面
 - [x] 文档列表页
 - [x] 文档详情页
-- [x] 文档编辑页
+- [x] 文档编辑页（Markdown）
 - [x] 文件夹管理页
 - [x] 主布局（带侧边栏）
+- [x] 标签管理页
+- [x] 收藏夹页面
 
 ## 数据库设计
 
@@ -131,7 +136,9 @@ model Document {
   ownerId   String
   folderId  String?
   isDeleted Boolean  @default(false)
+  isArchived Boolean @default(false)
   deletedAt DateTime?
+  archivedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -168,6 +175,45 @@ model RefreshToken {
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+```
+
+### Bookmark (收藏)
+```prisma
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String
+  documentId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, documentId])
+}
+```
+
+### Tag (标签)
+```prisma
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+```
+
+### DocumentTag (文档标签关联)
+```prisma
+model DocumentTag {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tagId      String
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, tagId])
 }
 ```
 
@@ -225,7 +271,23 @@ npm run dev
 - `PUT /api/v1/documents/:id` - 更新
 - `DELETE /api/v1/documents/:id` - 删除
 - `POST /api/v1/documents/:id/restore` - 恢复
+- `POST /api/v1/documents/:id/archive` - 归档
+- `POST /api/v1/documents/:id/unarchive` - 取消归档
 - `GET /api/v1/documents/:id/versions` - 版本历史
+- `POST /api/v1/documents/:id/versions/:versionId/rollback` - 回滚版本
+
+### 书签
+- `GET /api/v1/bookmarks` - 获取书签列表
+- `POST /api/v1/bookmarks/:documentId` - 添加书签
+- `DELETE /api/v1/bookmarks/:documentId` - 删除书签
+- `GET /api/v1/bookmarks/check/:documentId` - 检查书签状态
+
+### 标签
+- `GET /api/v1/tags` - 获取标签列表
+- `POST /api/v1/tags` - 创建标签
+- `DELETE /api/v1/tags/:id` - 删除标签
+- `GET /api/v1/documents/:id/tags` - 获取文档标签
+- `PUT /api/v1/documents/:id/tags` - 更新文档标签
 
 ### 文件夹
 - `GET /api/v1/folders` - 获取所有
@@ -242,11 +304,11 @@ npm run dev
 ## 待开发功能
 
 ### 核心功能
-- [ ] Markdown 编辑器
+- [x] Markdown 编辑器
 - [ ] 富文本编辑器（WYSIWYG）
-- [ ] 文档导出（PDF/Word/Markdown/HTML）
+- [x] 文档导出（PDF/Word/Markdown/HTML）
 - [ ] 批量导出
-- [ ] 全文搜索
+- [x] 全文搜索
 - [ ] 高级筛选（按日期/作者/标签/文件夹）
 - [ ] 文档协作（实时编辑）
 - [ ] 评论和批注功能
@@ -261,15 +323,15 @@ npm run dev
 - [ ] 双向链接
 - [ ] 知识图谱可视化
 - [ ] 标签系统增强（层级标签/标签颜色）
-- [ ] 收藏夹/书签
-- [ ] 文档归档
+- [x] 收藏夹/书签
+- [x] 文档归档
 
 ### 用户体验
-- [ ] 暗色模式
+- [x] 暗色模式
 - [ ] 移动端优化（响应式设计）
 - [ ] PWA 离线访问
-- [ ] 键盘快捷键
-- [ ] 最近浏览记录
+- [x] 键盘快捷键
+- [x] 最近浏览记录
 - [ ] 相关文档推荐
 
 ### 高级功能
