@@ -7,6 +7,8 @@ import { useToast } from '@/components/ui/toaster';
 import { documentService } from '@/services/document.service';
 import { tagService } from '@/services/tag.service';
 import { TagSelector } from '@/components/TagSelector';
+import LinkDocument from '@/components/LinkDocument';
+import LinkHelp from '@/components/LinkHelp';
 import type { Tag } from '@/services/tag.service';
 import MDEditor from '@uiw/react-md-editor';
 import { useThemeStore } from '@/stores/themeStore';
@@ -26,6 +28,10 @@ export default function DocumentEditPage() {
   const [preview, setPreview] = useState(false);
   const [useRichText, setUseRichText] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+
+  const handleInsertLink = (linkText: string) => {
+    setContent((prev) => prev + (prev ? '\n' : '') + linkText);
+  };
 
   useEffect(() => {
     if (id === 'new') {
@@ -154,6 +160,8 @@ export default function DocumentEditPage() {
               </span>
             </div>
             <div className="flex items-center gap-2">
+              <LinkDocument onLinkInsert={handleInsertLink} currentDocumentId={id !== 'new' ? id : undefined} />
+              <LinkHelp />
               <Button
                 variant="outline"
                 size="sm"
