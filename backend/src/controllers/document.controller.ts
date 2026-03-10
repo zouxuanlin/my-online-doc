@@ -29,7 +29,7 @@ export const createDocument = async (req: Request, res: Response) => {
 export const getDocumentList = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { folderId, search, page, pageSize, onlyDeleted, onlyArchived } = req.query;
+    const { folderId, search, page, pageSize, onlyDeleted, onlyArchived, tagId, sortBy, sortOrder, startDate, endDate } = req.query;
 
     const result = await documentService.getDocumentList(user.userId, {
       folderId: folderId as string | undefined,
@@ -38,6 +38,11 @@ export const getDocumentList = async (req: Request, res: Response) => {
       pageSize: pageSize ? parseInt(pageSize as string) : 20,
       onlyDeleted: onlyDeleted === 'true',
       onlyArchived: onlyArchived === 'true',
+      tagId: tagId as string | undefined,
+      sortBy: (sortBy as string) || 'updatedAt',
+      sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
+      startDate: startDate as string | undefined,
+      endDate: endDate as string | undefined,
     });
 
     res.json({

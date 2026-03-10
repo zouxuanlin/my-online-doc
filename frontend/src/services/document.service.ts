@@ -41,6 +41,11 @@ export const documentService = {
     pageSize?: number;
     onlyDeleted?: boolean;
     onlyArchived?: boolean;
+    tagId?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    startDate?: string;
+    endDate?: string;
   }) {
     const response = await apiClient.get('/documents', { params });
     return response.data.data;

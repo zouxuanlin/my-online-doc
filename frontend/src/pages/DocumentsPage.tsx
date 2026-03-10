@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Plus, Search, Trash2, RotateCcw, Eye, FileIcon, Tag, Edit2, Archive, Package } from 'lucide-react';
+import { FileText, Plus, Search, Trash2, RotateCcw, Eye, FileIcon, Tag, Edit2, Archive, Package, Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,10 +18,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/stores/authStore';
 import { documentService, Document as DocType } from '@/services/document.service';
 import { useToast } from '@/components/ui/toaster';
 import type { Tag as TagType } from '@/services/tag.service';
+import { tagService } from '@/services/tag.service';
 
 export default function DocumentsPage() {
   const navigate = useNavigate();
@@ -34,10 +41,18 @@ export default function DocumentsPage() {
   const [showArchived, setShowArchived] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
+  const [sortBy, setSortBy] = useState<string>('updatedAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [startDate, setStartDate] = useState<string | undefined>(undefined);
+  const [endDate, setEndDate] = useState<string | undefined>(undefined);
+  const [tags, setTags] = useState<TagType[]>([]);
 
   useEffect(() => {
     loadDocuments();
-  }, [showDeleted, showArchived]);
+    loadTags();
+  }, [showDeleted, showArchived, selectedTag, sortBy, sortOrder, startDate, endDate]);
 
   const loadDocuments = async () => {
     try {
@@ -45,12 +60,26 @@ export default function DocumentsPage() {
       const result = await documentService.getList({
         onlyDeleted: showDeleted,
         onlyArchived: showArchived && !showDeleted,
+        tagId: selectedTag,
+        sortBy,
+        sortOrder,
+        startDate,
+        endDate,
       });
       setDocuments(result.list || []);
     } catch (err: any) {
       showError(err.message || '加载文档失败');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTags = async () => {
+    try {
+      const result = await tagService.getAll();
+      setTags(result);
+    } catch (err: any) {
+      // ignore error
     }
   };
 
@@ -123,6 +152,17 @@ export default function DocumentsPage() {
     }
   };
 
+  const clearFilters = () => {
+    setSelectedTag(undefined);
+    setSortBy('updatedAt');
+    setSortOrder('desc');
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setShowFilters(false);
+  };
+
+  const hasActiveFilters = selectedTag || sortBy !== 'updatedAt' || startDate || endDate;
+
   const filteredDocuments = documents.filter((doc) =>
     doc.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -163,15 +203,104 @@ export default function DocumentsPage() {
       </div>
 
       <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="搜索文档标题或内容..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        <div className="flex gap-2 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="搜索文档标题或内容..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button
+            variant={showFilters ? 'default' : 'outline'}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            筛选
+            {hasActiveFilters && <span className="ml-1 w-2 h-2 rounded-full bg-primary" />}
+          </Button>
         </div>
+
+        {/* 高级筛选面板 */}
+        {showFilters && (
+          <Card className="p-4 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold">高级筛选</h3>
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <X className="h-4 w-4 mr-2" />
+                清除筛选
+              </Button>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {/* 标签筛选 */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">标签</label>
+                <select
+                  value={selectedTag || ''}
+                  onChange={(e) => setSelectedTag(e.target.value || undefined)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">全部标签</option>
+                  {tags.map((tag) => (
+                    <option key={tag.id} value={tag.id}>
+                      {tag.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 排序字段 */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">排序字段</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="updatedAt">最后修改时间</option>
+                  <option value="createdAt">创建时间</option>
+                  <option value="title">标题</option>
+                </select>
+              </div>
+
+              {/* 排序顺序 */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">排序顺序</label>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="desc">降序</option>
+                  <option value="asc">升序</option>
+                </select>
+              </div>
+
+              {/* 日期范围 */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">日期范围</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="date"
+                    value={startDate || ''}
+                    onChange={(e) => setStartDate(e.target.value || undefined)}
+                    className="text-sm"
+                    placeholder="开始日期"
+                  />
+                  <Input
+                    type="date"
+                    value={endDate || ''}
+                    onChange={(e) => setEndDate(e.target.value || undefined)}
+                    className="text-sm"
+                    placeholder="结束日期"
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
 
       {loading ? (

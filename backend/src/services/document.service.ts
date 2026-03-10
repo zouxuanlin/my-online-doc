@@ -53,6 +53,11 @@ export interface DocumentListOptions {
   pageSize?: number;
   onlyDeleted?: boolean;
   onlyArchived?: boolean;
+  tagId?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  startDate?: string;
+  endDate?: string;
 }
 
 // 获取文档列表
@@ -67,6 +72,11 @@ export async function getDocumentList(
     pageSize = 20,
     onlyDeleted = false,
     onlyArchived = false,
+    tagId,
+    sortBy = 'updatedAt',
+    sortOrder = 'desc',
+    startDate,
+    endDate,
   } = options || {};
 
   const where: any = {
@@ -87,6 +97,26 @@ export async function getDocumentList(
     where.folderId = folderId;
   }
 
+  // 标签筛选
+  if (tagId) {
+    where.tags = {
+      some: {
+        tagId,
+      },
+    };
+  }
+
+  // 日期范围筛选
+  if (startDate || endDate) {
+    where.updatedAt = {};
+    if (startDate) {
+      where.updatedAt.gte = new Date(startDate);
+    }
+    if (endDate) {
+      where.updatedAt.lte = new Date(endDate);
+    }
+  }
+
   // 全文搜索（标题 + 内容）
   if (search) {
     where.OR = [
@@ -98,6 +128,10 @@ export async function getDocumentList(
   // 获取总数
   const total = await prisma.document.count({ where });
 
+  // 排序选项
+  const orderBy: any = {};
+  orderBy[sortBy] = sortOrder;
+
   // 获取列表
   const documents = await prisma.document.findMany({
     where,
@@ -106,7 +140,7 @@ export async function getDocumentList(
       tags: { include: { tag: true } },
       _count: { select: { versions: true } },
     },
-    orderBy: { updatedAt: 'desc' },
+    orderBy,
     skip: (page - 1) * pageSize,
     take: pageSize,
   });
