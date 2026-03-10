@@ -230,27 +230,27 @@ export default function DocumentsPage() {
   );
 
   return (
-    <div className="flex-1 overflow-auto p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="flex-1 overflow-auto p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold mb-1">
+            <h1 className="text-xl md:text-2xl font-bold mb-1">
               {showDeleted ? '回收站' : showArchived ? '已归档' : '我的文档'}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               共 {documents.length} 个文档
             </p>
           </div>
           {selectedDocuments.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground hidden sm:inline">
                 已选择 {selectedDocuments.length} 个文档
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
                     <Download className="h-4 w-4 mr-2" />
-                    批量导出
+                    <span className="hidden sm:inline">批量导出</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
@@ -273,37 +273,39 @@ export default function DocumentsPage() {
                 size="sm"
                 onClick={() => setSelectedDocuments([])}
               >
-                取消选择
+                取消
               </Button>
             </div>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             variant={showArchived && !showDeleted ? 'default' : 'outline'}
             onClick={() => setShowArchived(!showArchived)}
+            size="sm"
           >
-            <Package className="h-4 w-4 mr-2" />
-            已归档
+            <Package className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">已归档</span>
           </Button>
           <Button
             variant={showDeleted ? 'default' : 'outline'}
             onClick={() => setShowDeleted(!showDeleted)}
+            size="sm"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
-            {showDeleted ? '返回文档列表' : '回收站'}
+            <Trash2 className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">{showDeleted ? '返回' : '回收站'}</span>
           </Button>
           {!showDeleted && !showArchived && (
-            <Button onClick={handleCreateDocument}>
-              <Plus className="h-4 w-4 mr-2" />
-              新建文档
+            <Button onClick={handleCreateDocument} size="sm">
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">新建文档</span>
             </Button>
           )}
         </div>
       </div>
 
       <div className="mb-6">
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row gap-2 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -316,6 +318,7 @@ export default function DocumentsPage() {
           <Button
             variant={showFilters ? 'default' : 'outline'}
             onClick={() => setShowFilters(!showFilters)}
+            size="sm"
           >
             <Filter className="h-4 w-4 mr-2" />
             筛选
@@ -404,13 +407,18 @@ export default function DocumentsPage() {
       </div>
 
       {!showDeleted && (
-        <div className="flex items-center gap-2 mb-4">
-          <Checkbox
-            checked={selectedDocuments.length === filteredDocuments.length && filteredDocuments.length > 0}
-            onCheckedChange={toggleSelectAll}
-          />
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={selectedDocuments.length === filteredDocuments.length && filteredDocuments.length > 0}
+              onCheckedChange={toggleSelectAll}
+            />
+            <span className="text-sm text-muted-foreground">
+              {selectedDocuments.length === filteredDocuments.length ? '取消全选' : '全选'}
+            </span>
+          </div>
           <span className="text-sm text-muted-foreground">
-            {selectedDocuments.length === filteredDocuments.length ? '取消全选' : '全选'}
+            已选择 {selectedDocuments.length}/{filteredDocuments.length}
           </span>
         </div>
       )}
@@ -425,7 +433,7 @@ export default function DocumentsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {filteredDocuments.map((doc) => (
             <Card
               key={doc.id}

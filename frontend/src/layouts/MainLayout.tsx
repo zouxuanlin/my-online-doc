@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun, Keyboard, Clock, X, Star } from 'lucide-react';
+import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun, Keyboard, Clock, X, Star, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeStore } from '@/stores/themeStore';
@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/toaster';
 import { authService } from '@/services/auth.service';
 import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -22,6 +23,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const { recents, removeRecent, clearRecents } = useRecentStore();
   const { toast } = useToast();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // 快捷键处理
   const handleSearch = () => {
@@ -64,112 +66,125 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const navItems = [
+    { path: '/documents', icon: FileText, label: '我的文档' },
+    { path: '/folders', icon: FolderOpen, label: '文件夹' },
+    { path: '/tags', icon: Tag, label: '标签管理' },
+    { path: '/bookmarks', icon: Star, label: '我的收藏' },
+  ];
+
+  const NavigationContent = () => (
+    <>
+      <div className="p-4">
+        <Link to="/documents" className="flex items-center gap-2">
+          <div className="p-2 bg-primary rounded-lg">
+            <FileText className="h-5 w-5 text-white" />
+          </div>
+          <span className="font-semibold text-lg">在线文档</span>
+        </Link>
+      </div>
+      <nav className="mt-4 px-2">
+        {navItems.map((item) => (
+          <Link key={item.path} to={item.path}>
+            <Button
+              variant={isActive(item.path) ? 'secondary' : 'ghost'}
+              className="w-full justify-start mb-1"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <item.icon className="h-4 w-4 mr-2" />
+              {item.label}
+            </Button>
+          </Link>
+        ))}
+      </nav>
+
+      {/* 最近浏览 */}
+      {recents.length > 0 && (
+        <div className="mt-6 px-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>最近浏览</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={clearRecents}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+          <div className="space-y-1">
+            {recents.map((recent) => (
+              <button
+                key={recent.id}
+                onClick={() => {
+                  navigate(`/documents/${recent.id}`);
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-muted group flex items-center justify-between"
+              >
+                <span className="truncate flex-1">{recent.title}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeRecent(recent.id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="flex h-screen bg-background">
-      {/* 侧边栏 */}
-      <aside className="w-64 border-r bg-muted/40 hidden md:block">
-        <div className="p-4">
-          <Link to="/documents" className="flex items-center gap-2">
-            <div className="p-2 bg-primary rounded-lg">
-              <FileText className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-semibold text-lg">在线文档</span>
-          </Link>
-        </div>
-        <nav className="mt-4 px-2">
-          <Link to="/documents">
-            <Button
-              variant={isActive('/documents') ? 'secondary' : 'ghost'}
-              className="w-full justify-start mb-1"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              我的文档
-            </Button>
-          </Link>
-          <Link to="/folders">
-            <Button
-              variant={isActive('/folders') ? 'secondary' : 'ghost'}
-              className="w-full justify-start mb-1"
-            >
-              <FolderOpen className="h-4 w-4 mr-2" />
-              文件夹
-            </Button>
-          </Link>
-          <Link to="/tags">
-            <Button
-              variant={isActive('/tags') ? 'secondary' : 'ghost'}
-              className="w-full justify-start mb-1"
-            >
-              <Tag className="h-4 w-4 mr-2" />
-              标签管理
-            </Button>
-          </Link>
-          <Link to="/bookmarks">
-            <Button
-              variant={isActive('/bookmarks') ? 'secondary' : 'ghost'}
-              className="w-full justify-start mb-1"
-            >
-              <Star className="h-4 w-4 mr-2" />
-              我的收藏
-            </Button>
-          </Link>
-        </nav>
-
-        {/* 最近浏览 */}
-        {recents.length > 0 && (
-          <div className="mt-6 px-2">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                <span>最近浏览</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={clearRecents}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-            <div className="space-y-1">
-              {recents.map((recent) => (
-                <button
-                  key={recent.id}
-                  onClick={() => navigate(`/documents/${recent.id}`)}
-                  className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-muted group flex items-center justify-between"
-                >
-                  <span className="truncate flex-1">{recent.title}</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeRecent(recent.id);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* 侧边栏 - 桌面端 */}
+      <aside className="w-64 border-r bg-muted/40 hidden md:block overflow-y-auto">
+        <NavigationContent />
       </aside>
+
+      {/* 移动端侧边栏 */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="left" className="w-64 p-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>导航菜单</SheetTitle>
+          </SheetHeader>
+          <div className="h-full overflow-y-auto">
+            <NavigationContent />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* 主内容区 */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* 顶部导航栏 */}
-        <header className="border-b px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4 md:hidden">
-            <FileText className="h-6 w-6 text-primary" />
+        <header className="border-b px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* 移动端菜单按钮 */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <FileText className="h-6 w-6 text-primary md:hidden" />
           </div>
-          <div className="flex-1" />
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleOpenShortcuts}
               title="快捷键 (?)"
+              className="hidden sm:inline-flex"
             >
               <Keyboard className="h-4 w-4" />
             </Button>
@@ -186,8 +201,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
               )}
             </Button>
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                <User className="h-4 w-4 text-white" />
+              <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center">
+                <User className="h-3.5 w-3.5 text-white" />
               </div>
               <span className="text-sm font-medium hidden sm:block">
                 {user?.name || user?.email}
