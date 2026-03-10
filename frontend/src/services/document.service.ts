@@ -8,6 +8,9 @@ export interface Document {
   folderId: string | null;
   isDeleted: boolean;
   isArchived: boolean;
+  isPublic: boolean;
+  publicSlug?: string | null;
+  publishedAt?: string | null;
   archivedAt?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -109,5 +112,29 @@ export const documentService = {
   async getRelated(id: string, limit?: number) {
     const response = await apiClient.get(`/documents/${id}/related`, { params: { limit } });
     return response.data.data.documents;
+  },
+
+  // 发布文档
+  async publish(id: string, slug?: string) {
+    const response = await apiClient.post(`/documents/${id}/publish`, { slug });
+    return response.data.data.document;
+  },
+
+  // 取消发布文档
+  async unpublish(id: string) {
+    const response = await apiClient.post(`/documents/${id}/unpublish`);
+    return response.data.data.document;
+  },
+
+  // 获取已发布文档列表
+  async getPublishedList() {
+    const response = await apiClient.get('/documents/published/list');
+    return response.data.data.documents;
+  },
+
+  // 通过 slug 获取公开文档
+  async getBySlug(slug: string) {
+    const response = await apiClient.get(`/documents/public/${slug}`);
+    return response.data.data.document;
   },
 };

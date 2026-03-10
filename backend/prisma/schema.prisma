@@ -53,6 +53,9 @@ model Document {
   isArchived Boolean @default(false)
   deletedAt DateTime?
   archivedAt DateTime?
+  isPublic  Boolean  @default(false)
+  publicSlug String? @unique
+  publishedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -65,6 +68,8 @@ model Document {
   @@index([folderId])
   @@index([isDeleted])
   @@index([isArchived])
+  @@index([isPublic])
+  @@index([publicSlug])
 }
 
 // 文档版本模型

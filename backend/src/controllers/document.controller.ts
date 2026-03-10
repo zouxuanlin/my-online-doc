@@ -243,3 +243,76 @@ export const getRelatedDocuments = async (req: Request, res: Response) => {
     throw error;
   }
 };
+
+// 发布文档
+export const publishDocument = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const { id } = req.params;
+    const { slug } = req.body;
+
+    const document = await documentService.publishDocument(id, user.userId, slug);
+
+    res.json({
+      code: 'SUCCESS',
+      data: { document },
+      message: '文档已发布',
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 取消发布文档
+export const unpublishDocument = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const { id } = req.params;
+
+    const document = await documentService.unpublishDocument(id, user.userId);
+
+    res.json({
+      code: 'SUCCESS',
+      data: { document },
+      message: '已取消发布',
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 获取已发布文档列表
+export const getPublishedDocuments = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+
+    const documents = await documentService.getUserPublishedDocuments(user.userId);
+
+    res.json({
+      code: 'SUCCESS',
+      data: { documents },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 通过 slug 获取公开文档（无需认证）
+export const getDocumentBySlug = async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params;
+
+    const document = await documentService.getDocumentBySlug(slug);
+
+    if (!document) {
+      throw new AppError('DOCUMENT_NOT_FOUND', '文档不存在或未被发布', 404);
+    }
+
+    res.json({
+      code: 'SUCCESS',
+      data: { document },
+    });
+  } catch (error) {
+    throw error;
+  }
+};

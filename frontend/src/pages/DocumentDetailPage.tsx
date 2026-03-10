@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit2, Clock, Star, Download, FileText } from 'lucide-react';
+import { ArrowLeft, Edit2, Clock, Star, Download, FileText, Globe, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -25,6 +25,8 @@ export default function DocumentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [relatedDocuments, setRelatedDocuments] = useState<Document[]>([]);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const [customSlug, setCustomSlug] = useState('');
 
   useEffect(() => {
     loadDocument();
@@ -104,6 +106,36 @@ export default function DocumentDetailPage() {
     }
   };
 
+  const handlePublish = async () => {
+    if (!id) return;
+    try {
+      await documentService.publish(id, customSlug || undefined);
+      toast({ description: '文档已发布，可通过公开链接访问' });
+      setPublishDialogOpen(false);
+      loadDocument();
+    } catch (err: any) {
+      showError(err.message || '发布失败');
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (!id) return;
+    try {
+      await documentService.unpublish(id);
+      toast({ description: '已取消发布' });
+      loadDocument();
+    } catch (err: any) {
+      showError(err.message || '操作失败');
+    }
+  };
+
+  const copyPublicLink = () => {
+    if (!document?.publicSlug) return;
+    const url = `${window.location.origin}/documents/public/${document.publicSlug}`;
+    navigator.clipboard.writeText(url);
+    toast({ description: '链接已复制到剪贴板' });
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -128,6 +160,35 @@ export default function DocumentDetailPage() {
             <h1 className="text-xl font-semibold">{document.title}</h1>
           </div>
           <div className="flex items-center gap-2">
+            {document?.isPublic ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyPublicLink}
+                >
+                  <Link className="h-4 w-4 mr-2" />
+                  复制链接
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleUnpublish}
+                >
+                  <Globe className="h-4 w-4 mr-2" />
+                  取消发布
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setPublishDialogOpen(true)}
+              >
+                <Globe className="h-4 w-4 mr-2" />
+                发布
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -205,6 +266,41 @@ export default function DocumentDetailPage() {
           </div>
         </div>
       )}
+
+      {/* 发布对话框 */}
+      <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>发布文档</DialogTitle>
+            <DialogDescription>
+              发布后文档可通过公开链接访问，任何人无需登录即可查看
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">
+                自定义链接后缀（可选）
+              </label>
+              <Input
+                value={customSlug}
+                onChange={(e) => setCustomSlug(e.target.value)}
+                placeholder="留空将自动生成"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                如不填写，系统将自动生成随机链接
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPublishDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handlePublish}>
+              发布
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

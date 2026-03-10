@@ -2,6 +2,7 @@ import prisma from '../utils/prisma';
 import { AppError } from '../middleware/error.middleware';
 import { Permission } from '../types';
 import { Document, DocumentVersion } from '@prisma/client';
+import { cuid } from '@prisma/client/runtime/library';
 
 export interface CreateDocumentInput {
   title: string;
@@ -442,4 +443,72 @@ export async function getRelatedDocuments(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((item) => item.doc);
+}
+
+// 发布文档（公开访问）
+export async function publishDocument(
+  documentId: string,
+  userId: string,
+  slug?: string
+): Promise<Document> {
+  await getDocumentById(documentId, userId);
+
+  // 检查 slug 是否已存在
+  if (slug) {
+    const existing = await prisma.document.findFirst({
+      where: { publicSlug: slug },
+    });
+    if (existing && existing.id !== documentId) {
+      throw new AppError('SLUG_EXISTS', '自定义链接已存在', 409);
+    }
+  }
+
+  return prisma.document.update({
+    where: { id: documentId },
+    data: {
+      isPublic: true,
+      publicSlug: slug || cuid(),
+      publishedAt: new Date(),
+    },
+  });
+}
+
+// 取消发布文档
+export async function unpublishDocument(
+  documentId: string,
+  userId: string
+): Promise<Document> {
+  await getDocumentById(documentId, userId);
+
+  return prisma.document.update({
+    where: { id: documentId },
+    data: {
+      isPublic: false,
+      publicSlug: null,
+      publishedAt: null,
+    },
+  });
+}
+
+// 通过 slug 获取公开文档
+export async function getDocumentBySlug(slug: string): Promise<Document | null> {
+  return prisma.document.findFirst({
+    where: {
+      publicSlug: slug,
+      isPublic: true,
+      isDeleted: false,
+    },
+  });
+}
+
+// 获取用户的已发布文档
+export async function getUserPublishedDocuments(userId: string): Promise<Document[]> {
+  return prisma.document.findMany({
+    where: {
+      ownerId: userId,
+      isPublic: true,
+      isDeleted: false,
+    },
+    orderBy: { publishedAt: 'desc' },
+  });
 }

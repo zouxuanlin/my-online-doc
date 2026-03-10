@@ -11,6 +11,7 @@ import DocumentEditPage from '@/pages/DocumentEditPage';
 import FoldersPage from '@/pages/FoldersPage';
 import TagsPage from '@/pages/TagsPage';
 import BookmarksPage from '@/pages/BookmarksPage';
+import PublicDocumentPage from '@/pages/PublicDocumentPage';
 
 function App() {
   return (
@@ -33,6 +34,11 @@ function App() {
                 <RegisterPage />
               </GuestGuard>
             }
+          />
+          {/* 公开文档查看页面（无需认证） */}
+          <Route
+            path="/documents/public/:slug"
+            element={<PublicDocumentPage />}
           />
 
           {/* 保护的路由 */}

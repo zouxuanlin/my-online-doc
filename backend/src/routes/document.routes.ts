@@ -42,7 +42,19 @@ router.post('/:id/unarchive', documentController.unarchiveDocument);
 // 获取相关文档
 router.get('/:id/related', documentController.getRelatedDocuments);
 
+// 发布文档
+router.post('/:id/publish', documentController.publishDocument);
+
+// 取消发布文档
+router.post('/:id/unpublish', documentController.unpublishDocument);
+
+// 获取已发布文档
+router.get('/published/list', documentController.getPublishedDocuments);
+
 // 获取归档文档
 router.get('/archive', documentController.getDocumentList);
+
+// 公开访问文档（通过 slug）
+router.get('/public/:slug', documentController.getDocumentBySlug);
 
 export default router;
