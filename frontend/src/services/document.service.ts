@@ -104,4 +104,10 @@ export const documentService = {
     const response = await apiClient.post(`/documents/${id}/unarchive`);
     return response.data.data.document;
   },
+
+  // 获取相关文档
+  async getRelated(id: string, limit?: number) {
+    const response = await apiClient.get(`/documents/${id}/related`, { params: { limit } });
+    return response.data.data.documents;
+  },
 };

@@ -221,3 +221,25 @@ export const unarchiveDocument = async (req: Request, res: Response) => {
     throw error;
   }
 };
+
+// 获取相关文档
+export const getRelatedDocuments = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const { id } = req.params;
+    const { limit = 5 } = req.query;
+
+    const documents = await documentService.getRelatedDocuments(
+      id,
+      user.userId,
+      parseInt(limit as string)
+    );
+
+    res.json({
+      code: 'SUCCESS',
+      data: { documents },
+    });
+  } catch (error) {
+    throw error;
+  }
+};

@@ -375,3 +375,71 @@ export async function unarchiveDocument(
     },
   });
 }
+
+// 获取相关文档（基于标签和内容相似度）
+export async function getRelatedDocuments(
+  documentId: string,
+  userId: string,
+  limit: number = 5
+): Promise<Document[]> {
+  const currentDoc = await getDocumentById(documentId, userId);
+
+  // 获取当前文档的标签
+  const currentTags = await prisma.documentTag.findMany({
+    where: { documentId },
+    include: { tag: true },
+  });
+
+  if (currentTags.length === 0) {
+    // 如果没有标签，返回同文件夹的文档
+    return prisma.document.findMany({
+      where: {
+        ownerId: userId,
+        id: { not: documentId },
+        folderId: currentDoc.folderId,
+        isDeleted: false,
+        isArchived: false,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: limit,
+    });
+  }
+
+  // 获取标签 ID 列表
+  const tagIds = currentTags.map((t) => t.tagId);
+
+  // 查找有相同标签的文档
+  const relatedDocs = await prisma.document.findMany({
+    where: {
+      ownerId: userId,
+      id: { not: documentId },
+      isDeleted: false,
+      isArchived: false,
+      tags: {
+        some: {
+          tagId: { in: tagIds },
+        },
+      },
+    },
+    include: {
+      tags: { include: { tag: true } },
+    },
+    orderBy: { updatedAt: 'desc' },
+    take: limit * 2,
+  });
+
+  // 计算相似度分数并排序
+  const scoredDocs = relatedDocs.map((doc) => {
+    const docTagIds = doc.tags.map((t) => t.tagId);
+    const commonTags = tagIds.filter((id) => docTagIds.includes(id));
+    const score = commonTags.length;
+
+    return { doc, score };
+  });
+
+  // 按相似度排序并返回
+  return scoredDocs
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((item) => item.doc);
+}

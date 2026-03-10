@@ -39,6 +39,9 @@ router.post('/:id/archive', documentController.archiveDocument);
 // 取消归档
 router.post('/:id/unarchive', documentController.unarchiveDocument);
 
+// 获取相关文档
+router.get('/:id/related', documentController.getRelatedDocuments);
+
 // 获取归档文档
 router.get('/archive', documentController.getDocumentList);
 

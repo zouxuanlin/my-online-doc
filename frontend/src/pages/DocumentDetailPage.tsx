@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit2, Clock, Star, Download } from 'lucide-react';
+import { ArrowLeft, Edit2, Clock, Star, Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,7 @@ export default function DocumentDetailPage() {
   const [document, setDocument] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [relatedDocuments, setRelatedDocuments] = useState<Document[]>([]);
 
   useEffect(() => {
     loadDocument();
@@ -33,6 +35,7 @@ export default function DocumentDetailPage() {
     if (document) {
       addRecent({ id: document.id, title: document.title });
       checkBookmarkStatus();
+      loadRelatedDocuments();
     }
   }, [document]);
 
@@ -88,6 +91,16 @@ export default function DocumentDetailPage() {
       success(`已导出为 ${format.toUpperCase()} 格式`);
     } catch (err: any) {
       showError(err.message || '导出失败');
+    }
+  };
+
+  const loadRelatedDocuments = async () => {
+    if (!id) return;
+    try {
+      const related = await documentService.getRelated(id, 5);
+      setRelatedDocuments(related);
+    } catch (err: any) {
+      // ignore error
     }
   };
 
@@ -163,6 +176,35 @@ export default function DocumentDetailPage() {
           </pre>
         </div>
       </div>
+
+      {/* 相关文档推荐 */}
+      {relatedDocuments.length > 0 && (
+        <div className="border-t p-6">
+          <h2 className="text-lg font-semibold mb-4">相关文档</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {relatedDocuments.map((doc) => (
+              <Card
+                key={doc.id}
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => navigate(`/documents/${doc.id}`)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    <h3 className="font-semibold text-sm truncate">{doc.title}</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {doc.content?.slice(0, 50) || '无内容'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {new Date(doc.updatedAt).toLocaleDateString('zh-CN')}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
