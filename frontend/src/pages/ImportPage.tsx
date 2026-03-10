@@ -4,8 +4,6 @@ import { Upload, FileText, CheckCircle, XCircle, AlertCircle } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toaster';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import apiClient from '@/services/api';
 
 interface ImportResult {
@@ -19,7 +17,6 @@ export default function ImportPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [dragActive, setDragActive] = useState(false);
-  const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -56,7 +53,6 @@ export default function ImportPage() {
       formData.append('files', files[i]);
     }
 
-    setImporting(true);
     setResult(null);
 
     try {
@@ -79,8 +75,6 @@ export default function ImportPage() {
         description: err.message || '导入过程中发生错误',
         variant: 'destructive',
       });
-    } finally {
-      setImporting(false);
     }
   };
 

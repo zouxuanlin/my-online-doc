@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Share, Lock, Clock, User, Trash2 } from 'lucide-react';
+import { FileText, Lock, Clock, User, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toaster';
@@ -65,7 +65,7 @@ export default function SharedWithMePage() {
         <div className="text-center py-12 text-muted-foreground">加载中...</div>
       ) : receivedShares.length === 0 ? (
         <div className="text-center py-12">
-          <Share className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <Share2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">
             暂无分享
           </p>

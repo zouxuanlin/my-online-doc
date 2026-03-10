@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FileText, FileImage, FileVideo, FileAudio, FileCode, File, X } from 'lucide-react';
+import { FileImage, FileVideo, FileAudio, FileCode, File, X } from 'lucide-react';
 
 interface FilePreviewProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   fileUrl: string;
   fileName: string;
-  fileType?: string;
 }
 
 const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico'];
@@ -16,12 +15,8 @@ const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.wmv'];
 const audioExtensions = ['.mp3', '.wav', '.ogg', '.flac', '.aac'];
 const codeExtensions = ['.js', '.ts', '.jsx', '.tsx', '.py', '.java', '.c', '.cpp', '.h', '.hpp', '.go', '.rs', '.rb', '.php', '.html', '.css', '.scss', '.less', '.json', '.xml', '.yaml', '.yml', '.md', '.sql', '.sh', '.bash'];
 
-export default function FilePreview({ open, onOpenChange, fileUrl, fileName, fileType }: FilePreviewProps) {
+export default function FilePreview({ open, onOpenChange, fileUrl, fileName }: FilePreviewProps) {
   const [previewError, setPreviewError] = useState(false);
-
-  const getFileExtension = (filename: string) => {
-    return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2).toLowerCase();
-  };
 
   const isImage = () => imageExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
   const isVideo = () => videoExtensions.some(ext => fileName.toLowerCase().endsWith(ext));

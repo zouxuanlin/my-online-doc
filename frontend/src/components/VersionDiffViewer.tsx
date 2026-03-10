@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { diff, compareLines, getDiffStats } from '@/utils/diff';
+import { compareLines, getDiffStats } from '@/utils/diff';
 import { X } from 'lucide-react';
 
 interface VersionDiffViewerProps {

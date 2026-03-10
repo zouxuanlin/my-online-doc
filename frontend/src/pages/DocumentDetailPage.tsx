@@ -406,9 +406,9 @@ export default function DocumentDetailPage() {
                     }`}
                     onClick={() => {
                       if (selectedVersions?.[0]?.id === version.id) {
-                        setSelectedVersions([null, selectedVersions[1]].filter(Boolean) as [any, any]);
+                        setSelectedVersions([null, selectedVersions?.[1] ?? null] as [any, any]);
                       } else if (selectedVersions?.[1]?.id === version.id) {
-                        setSelectedVersions([selectedVersions[0], null].filter(Boolean) as [any, any]);
+                        setSelectedVersions([selectedVersions?.[0] ?? null, null] as [any, any]);
                       } else if (!selectedVersions || selectedVersions.length < 2) {
                         const newSelection = selectedVersions
                           ? [...selectedVersions, version]
