@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/toaster';
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
-  const { error: showError } = useToast();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -32,7 +32,11 @@ export default function LoginPage() {
       login(result.user, result.tokens.accessToken, result.tokens.refreshToken);
       navigate('/documents');
     } catch (err: any) {
-      showError(err.message || '登录失败，请检查邮箱和密码');
+      toast({
+        title: "错误",
+        description: err.message || '登录失败，请检查邮箱和密码',
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }

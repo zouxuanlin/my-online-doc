@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/toaster';
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
-  const { error: showError, success } = useToast();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -25,12 +25,20 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      showError('两次输入的密码不一致');
+      toast({
+        title: "错误",
+        description: '两次输入的密码不一致',
+        variant: "destructive"
+      });
       return;
     }
 
     if (formData.password.length < 6) {
-      showError('密码长度至少为 6 位');
+      toast({
+        title: "错误",
+        description: '密码长度至少为 6 位',
+        variant: "destructive"
+      });
       return;
     }
 
@@ -44,10 +52,14 @@ export default function RegisterPage() {
       });
 
       login(result.user, result.tokens.accessToken, result.tokens.refreshToken);
-      success('注册成功');
+      toast({ description: '注册成功' });
       navigate('/documents');
     } catch (err: any) {
-      showError(err.message || '注册失败');
+      toast({
+        title: "错误",
+        description: err.message || '注册失败',
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }

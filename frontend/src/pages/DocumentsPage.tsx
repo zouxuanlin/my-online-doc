@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Plus, Search, Trash2, RotateCcw, Eye, FileIcon, Tag, Edit2, Archive, Package, Filter, X } from 'lucide-react';
+import { FileText, Plus, Search, Trash2, RotateCcw, Eye, FileIcon, Tag, Edit2, Archive, Package, Filter, X, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,16 +24,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuthStore } from '@/stores/authStore';
-import { documentService, Document as DocType } from '@/services/document.service';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/toaster';
+import { documentService, Document as DocType } from '@/services/document.service';
 import type { Tag as TagType } from '@/services/tag.service';
 import { tagService } from '@/services/tag.service';
+import { batchExportDocuments, ExportFormat } from '@/services/export.service';
 
 export default function DocumentsPage() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
-  const { toast, error: showError } = useToast();
+  const { toast } = useToast();
   const [documents, setDocuments] = useState<DocType[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,6 +48,7 @@ export default function DocumentsPage() {
   const [startDate, setStartDate] = useState<string | undefined>(undefined);
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
   const [tags, setTags] = useState<TagType[]>([]);
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
 
   useEffect(() => {
     loadDocuments();
@@ -68,7 +69,11 @@ export default function DocumentsPage() {
       });
       setDocuments(result.list || []);
     } catch (err: any) {
-      showError(err.message || '加载文档失败');
+      toast({
+        title: "错误",
+        description: err.message || '加载文档失败',
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -91,7 +96,11 @@ export default function DocumentsPage() {
       });
       navigate(`/documents/${doc.id}/edit`);
     } catch (err: any) {
-      showError(err.message || '创建文档失败');
+      toast({
+        title: "错误",
+        description: err.message || '创建文档失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -107,7 +116,11 @@ export default function DocumentsPage() {
       setDeleteConfirmOpen(false);
       loadDocuments();
     } catch (err: any) {
-      showError(err.message || '操作失败');
+      toast({
+        title: "错误",
+        description: err.message || '操作失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -128,7 +141,11 @@ export default function DocumentsPage() {
       toast({ description: '文档已恢复' });
       loadDocuments();
     } catch (err: any) {
-      showError(err.message || '恢复失败');
+      toast({
+        title: "错误",
+        description: err.message || '恢复失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -138,7 +155,11 @@ export default function DocumentsPage() {
       toast({ description: '文档已归档' });
       loadDocuments();
     } catch (err: any) {
-      showError(err.message || '归档失败');
+      toast({
+        title: "错误",
+        description: err.message || '归档失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -148,7 +169,11 @@ export default function DocumentsPage() {
       toast({ description: '已取消归档' });
       loadDocuments();
     } catch (err: any) {
-      showError(err.message || '操作失败');
+      toast({
+        title: "错误",
+        description: err.message || '操作失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -163,6 +188,43 @@ export default function DocumentsPage() {
 
   const hasActiveFilters = selectedTag || sortBy !== 'updatedAt' || startDate || endDate;
 
+  const toggleSelectDocument = (id: string) => {
+    setSelectedDocuments(prev =>
+      prev.includes(id) ? prev.filter(docId => docId !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedDocuments.length === filteredDocuments.length) {
+      setSelectedDocuments([]);
+    } else {
+      setSelectedDocuments(filteredDocuments.map(doc => doc.id));
+    }
+  };
+
+  const handleBatchExport = async (format: ExportFormat) => {
+    if (selectedDocuments.length === 0) {
+      toast({
+        title: "提示",
+        description: '请先选择要导出的文档',
+        variant: "destructive"
+      });
+      return;
+    }
+    try {
+      const docsToExport = documents.filter(doc => selectedDocuments.includes(doc.id));
+      await batchExportDocuments(docsToExport, format);
+      toast({ description: `已导出 ${docsToExport.length} 个文档` });
+      setSelectedDocuments([]);
+    } catch (err: any) {
+      toast({
+        title: "错误",
+        description: err.message || '批量导出失败',
+        variant: "destructive"
+      });
+    }
+  };
+
   const filteredDocuments = documents.filter((doc) =>
     doc.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -170,13 +232,51 @@ export default function DocumentsPage() {
   return (
     <div className="flex-1 overflow-auto p-6">
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold mb-1">
-            {showDeleted ? '回收站' : showArchived ? '已归档' : '我的文档'}
-          </h1>
-          <p className="text-muted-foreground">
-            共 {documents.length} 个文档
-          </p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold mb-1">
+              {showDeleted ? '回收站' : showArchived ? '已归档' : '我的文档'}
+            </h1>
+            <p className="text-muted-foreground">
+              共 {documents.length} 个文档
+            </p>
+          </div>
+          {selectedDocuments.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                已选择 {selectedDocuments.length} 个文档
+              </span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    批量导出
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleBatchExport('markdown')}>
+                    导出为 Markdown (ZIP)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBatchExport('pdf')}>
+                    导出为 PDF (ZIP)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBatchExport('html')}>
+                    导出为 HTML (ZIP)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBatchExport('word')}>
+                    导出为 Word (ZIP)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedDocuments([])}
+              >
+                取消选择
+              </Button>
+            </div>
+          )}
         </div>
         <div className="flex gap-2">
           <Button
@@ -303,6 +403,18 @@ export default function DocumentsPage() {
         )}
       </div>
 
+      {!showDeleted && (
+        <div className="flex items-center gap-2 mb-4">
+          <Checkbox
+            checked={selectedDocuments.length === filteredDocuments.length && filteredDocuments.length > 0}
+            onCheckedChange={toggleSelectAll}
+          />
+          <span className="text-sm text-muted-foreground">
+            {selectedDocuments.length === filteredDocuments.length ? '取消全选' : '全选'}
+          </span>
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">加载中...</div>
       ) : filteredDocuments.length === 0 ? (
@@ -317,10 +429,19 @@ export default function DocumentsPage() {
           {filteredDocuments.map((doc) => (
             <Card
               key={doc.id}
-              className="group hover:shadow-md transition-shadow cursor-pointer"
+              className="group hover:shadow-md transition-shadow cursor-pointer relative"
               onClick={() => navigate(`/documents/${doc.id}`)}
             >
-              <CardContent className="p-4">
+              <div
+                className="absolute top-3 left-3 z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Checkbox
+                  checked={selectedDocuments.includes(doc.id)}
+                  onCheckedChange={() => toggleSelectDocument(doc.id)}
+                />
+              </div>
+              <CardContent className="p-4 pt-10">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <FileIcon className="h-5 w-5 text-primary" />

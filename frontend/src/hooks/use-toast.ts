@@ -180,6 +180,13 @@ function useToast() {
     ...state,
     toast,
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    // 辅助方法
+    success: (description: string) => toast({ description }),
+    error: (description: string, title?: string) => toast({
+      title: title || "错误",
+      description,
+      variant: "destructive"
+    }),
   }
 }
 

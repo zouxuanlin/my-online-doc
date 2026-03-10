@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toaster';
 import { documentService } from '@/services/document.service';
 import type { Document } from '@/services/document.service';
@@ -10,7 +9,7 @@ import type { Document } from '@/services/document.service';
 export default function PublicDocumentPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { error: showError } = useToast();
+  const { toast } = useToast();
   const [document, setDocument] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +24,11 @@ export default function PublicDocumentPage() {
       const doc = await documentService.getBySlug(slug);
       setDocument(doc);
     } catch (err: any) {
-      showError(err.message || '加载文档失败');
+      toast({
+        title: "错误",
+        description: err.message || '加载文档失败',
+        variant: "destructive"
+      });
       navigate('/documents');
     } finally {
       setLoading(false);

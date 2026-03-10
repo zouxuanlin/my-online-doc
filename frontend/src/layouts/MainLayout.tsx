@@ -20,7 +20,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const { user, refreshToken, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const { recents, removeRecent, clearRecents } = useRecentStore();
-  const { success, error: showError } = useToast();
+  const { toast } = useToast();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   // 快捷键处理
@@ -54,7 +54,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         await authService.logout(refreshToken);
       }
       logout();
-      success('已退出登录');
+      toast({ description: '已退出登录' });
       navigate('/login');
     } catch (err: any) {
       logout();

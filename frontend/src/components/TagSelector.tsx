@@ -13,7 +13,7 @@ interface TagSelectorProps {
 }
 
 export function TagSelector({ documentId, value = [], onChange }: TagSelectorProps) {
-  const { toast, error: showError } = useToast();
+  const { toast } = useToast();
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>(value);
   const [isCreating, setIsCreating] = useState(false);
@@ -34,7 +34,11 @@ export function TagSelector({ documentId, value = [], onChange }: TagSelectorPro
       const data = await tagService.getAll();
       setTags(data);
     } catch (err: any) {
-      showError('加载标签失败');
+      toast({
+        title: "错误",
+        description: '加载标签失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -58,7 +62,11 @@ export function TagSelector({ documentId, value = [], onChange }: TagSelectorPro
         }
       }
     } catch (err: any) {
-      showError(err.response?.data?.message || '创建标签失败');
+      toast({
+        title: "错误",
+        description: err.response?.data?.message || '创建标签失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -86,7 +94,11 @@ export function TagSelector({ documentId, value = [], onChange }: TagSelectorPro
         onChange?.(newSelected);
       }
     } catch (err: any) {
-      showError(err.response?.data?.message || '操作失败');
+      toast({
+        title: "错误",
+        description: err.response?.data?.message || '操作失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -102,7 +114,11 @@ export function TagSelector({ documentId, value = [], onChange }: TagSelectorPro
       }
       toast({ description: '标签已删除' });
     } catch (err: any) {
-      showError(err.response?.data?.message || '删除标签失败');
+      toast({
+        title: "错误",
+        description: err.response?.data?.message || '删除标签失败',
+        variant: "destructive"
+      });
     }
   };
 

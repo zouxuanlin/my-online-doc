@@ -1,8 +1,7 @@
 import { Document } from './document.service';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { toBlob } from 'html-to-image';
 import { saveAs } from 'file-saver';
+import JSZip from 'jszip';
 
 // 导出为 Markdown
 export function exportAsMarkdown(doc: Document): void {
@@ -166,4 +165,77 @@ export async function exportDocument(
   } catch (error: any) {
     throw new Error(`导出失败：${error.message}`);
   }
+}
+
+// 批量导出为 ZIP
+export async function batchExportDocuments(
+  documents: Document[],
+  format: ExportFormat = 'markdown'
+): Promise<void> {
+  const zip = new JSZip();
+
+  for (const doc of documents) {
+    let content: string | Blob;
+    let filename: string;
+
+    switch (format) {
+      case 'markdown':
+        content = `# ${doc.title}\n\n${doc.content || ''}`;
+        filename = `${doc.title}.md`;
+        break;
+      case 'html':
+        content = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>${doc.title}</title></head><body><h1>${doc.title}</h1><div>${doc.content || '无内容'}</div></body></html>`;
+        filename = `${doc.title}.html`;
+        break;
+      case 'word':
+        const rtf = `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times New Roman;}}\\f0\\fs48 ${doc.title}\\par\\fs20\\par${(doc.content || '').replace(/\n/g, '\\par ')}}`;
+        content = new Blob([rtf], { type: 'application/msword' });
+        filename = `${doc.title}.doc`;
+        break;
+      default:
+        // PDF 需要单独处理
+        continue;
+    }
+
+    zip.file(filename, content);
+  }
+
+  // 如果需要导出 PDF，需要单独处理
+  if (format === 'pdf') {
+    for (const doc of documents) {
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      pdf.setFontSize(18);
+      pdf.text(doc.title, 20, 20);
+
+      const content = doc.content || '无内容';
+      const lines = pdf.splitTextToSize(content, 170);
+
+      let y = 40;
+      const pageHeight = pdf.internal.pageSize.height;
+      const lineHeight = 7;
+
+      for (const line of lines) {
+        if (y > pageHeight - 20) {
+          pdf.addPage();
+          y = 20;
+        }
+        pdf.text(line, 20, y);
+        y += lineHeight;
+      }
+
+      const pdfBlob = await new Promise<Blob>((resolve) => {
+        resolve(pdf.output('blob'));
+      });
+
+      zip.file(`${doc.title}.pdf`, pdfBlob);
+    }
+  }
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  saveAs(zipBlob, `documents-export-${new Date().toISOString().slice(0, 10)}.zip`);
 }

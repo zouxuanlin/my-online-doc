@@ -18,12 +18,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/toaster';
 import { tagService, type Tag } from '@/services/tag.service';
 
@@ -34,7 +28,7 @@ interface TagNode extends Tag {
 
 export default function TagsPage() {
   const navigate = useNavigate();
-  const { toast, error: showError } = useToast();
+  const { toast } = useToast();
   const [tags, setTags] = useState<TagNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,7 +57,11 @@ export default function TagsPage() {
       const data = await tagService.getAll();
       setTags(buildTagTree(data));
     } catch (err: any) {
-      showError(err.message || '加载标签失败');
+      toast({
+        title: "错误",
+        description: err.message || '加载标签失败',
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -91,7 +89,11 @@ export default function TagsPage() {
 
   const handleCreateTag = async () => {
     if (!newTagName.trim()) {
-      showError('标签名称不能为空');
+      toast({
+        title: "提示",
+        description: '标签名称不能为空',
+        variant: "destructive"
+      });
       return;
     }
 
@@ -104,7 +106,11 @@ export default function TagsPage() {
       setNewTagParentId(undefined);
       loadTags();
     } catch (err: any) {
-      showError(err.message || '创建标签失败');
+      toast({
+        title: "错误",
+        description: err.message || '创建标签失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -116,7 +122,11 @@ export default function TagsPage() {
 
   const handleSaveEdit = async () => {
     if (!editingTag || !editName.trim()) {
-      showError('标签名称不能为空');
+      toast({
+        title: "提示",
+        description: '标签名称不能为空',
+        variant: "destructive"
+      });
       return;
     }
 
@@ -126,7 +136,11 @@ export default function TagsPage() {
       setEditingTag(null);
       loadTags();
     } catch (err: any) {
-      showError(err.message || '更新标签失败');
+      toast({
+        title: "错误",
+        description: err.message || '更新标签失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -145,7 +159,11 @@ export default function TagsPage() {
       setIsDeleteConfirmOpen(false);
       loadTags();
     } catch (err: any) {
-      showError(err.message || '删除标签失败');
+      toast({
+        title: "错误",
+        description: err.message || '删除标签失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -177,8 +195,6 @@ export default function TagsPage() {
     });
   };
 
-  const filteredTags = filterTags(tags, searchTerm);
-
   const filterTags = (tags: TagNode[], term: string): TagNode[] => {
     if (!term) return tags;
 
@@ -193,6 +209,8 @@ export default function TagsPage() {
     });
     return result;
   };
+
+  const filteredTags = filterTags(tags, searchTerm);
 
   const renderTagNode = (tag: TagNode, depth: number = 0) => (
     <div key={tag.id}>

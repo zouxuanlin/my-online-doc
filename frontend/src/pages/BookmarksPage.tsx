@@ -10,7 +10,7 @@ import type { Document } from '@/services/bookmark.service';
 
 export default function BookmarksPage() {
   const navigate = useNavigate();
-  const { toast, error: showError } = useToast();
+  const { toast } = useToast();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,7 +25,11 @@ export default function BookmarksPage() {
       const result = await bookmarkService.getList();
       setDocuments(result || []);
     } catch (err: any) {
-      showError(err.message || '加载收藏失败');
+      toast({
+        title: "错误",
+        description: err.message || '加载收藏失败',
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -37,7 +41,11 @@ export default function BookmarksPage() {
       toast({ description: '已取消收藏' });
       loadBookmarks();
     } catch (err: any) {
-      showError(err.message || '操作失败');
+      toast({
+        title: "错误",
+        description: err.message || '操作失败',
+        variant: "destructive"
+      });
     }
   };
 

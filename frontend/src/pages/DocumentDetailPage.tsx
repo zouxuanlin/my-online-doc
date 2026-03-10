@@ -4,11 +4,20 @@ import { ArrowLeft, Edit2, Clock, Star, Download, FileText, Globe, Link } from '
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toaster';
 import { useRecentStore } from '@/stores/recentStore';
 import { bookmarkService } from '@/services/bookmark.service';
@@ -19,7 +28,7 @@ import type { Document } from '@/services/document.service';
 export default function DocumentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { success, error: showError } = useToast();
+  const { toast } = useToast();
   const { addRecent } = useRecentStore();
   const [document, setDocument] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,14 +66,18 @@ export default function DocumentDetailPage() {
       if (isBookmarked) {
         await bookmarkService.remove(id);
         setIsBookmarked(false);
-        success('已取消收藏');
+        toast({ description: '已取消收藏' });
       } else {
         await bookmarkService.add(id);
         setIsBookmarked(true);
-        success('已添加收藏');
+        toast({ description: '已添加收藏' });
       }
     } catch (err: any) {
-      showError(err.message || '操作失败');
+      toast({
+        title: "错误",
+        description: err.message || '操作失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -75,7 +88,11 @@ export default function DocumentDetailPage() {
       const doc = await documentService.getById(id);
       setDocument(doc);
     } catch (err: any) {
-      showError(err.message || '加载文档失败');
+      toast({
+        title: "错误",
+        description: err.message || '加载文档失败',
+        variant: "destructive"
+      });
       navigate('/documents');
     } finally {
       setLoading(false);
@@ -90,9 +107,13 @@ export default function DocumentDetailPage() {
     if (!document) return;
     try {
       await exportDocument(document, format);
-      success(`已导出为 ${format.toUpperCase()} 格式`);
+      toast({ description: `已导出为 ${format.toUpperCase()} 格式` });
     } catch (err: any) {
-      showError(err.message || '导出失败');
+      toast({
+        title: "错误",
+        description: err.message || '导出失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -114,7 +135,11 @@ export default function DocumentDetailPage() {
       setPublishDialogOpen(false);
       loadDocument();
     } catch (err: any) {
-      showError(err.message || '发布失败');
+      toast({
+        title: "错误",
+        description: err.message || '发布失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -125,7 +150,11 @@ export default function DocumentDetailPage() {
       toast({ description: '已取消发布' });
       loadDocument();
     } catch (err: any) {
-      showError(err.message || '操作失败');
+      toast({
+        title: "错误",
+        description: err.message || '操作失败',
+        variant: "destructive"
+      });
     }
   };
 

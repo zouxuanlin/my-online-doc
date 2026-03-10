@@ -14,9 +14,8 @@ import { documentService, type Document } from '@/services/document.service';
 import { cn } from '@/utils/cn';
 
 export default function FoldersPage() {
-  const { success, error: showError } = useToast();
+  const { toast } = useToast();
   const [folders, setFolders] = useState<FolderType[]>([]);
-  const [documents, setDocuments] = useState<Document[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -34,19 +33,27 @@ export default function FoldersPage() {
       const data = await folderService.getAll();
       setFolders(data);
     } catch (err: any) {
-      showError(err.message || '加载文件夹失败');
+      toast({
+        title: "错误",
+        description: err.message || '加载文件夹失败',
+        variant: "destructive"
+      });
     }
   };
 
   const handleCreateFolder = async (parentId?: string) => {
     if (!newFolderName.trim()) {
-      showError('请输入文件夹名称');
+      toast({
+        title: "提示",
+        description: '请输入文件夹名称',
+        variant: "destructive"
+      });
       return;
     }
 
     try {
       await folderService.create({ name: newFolderName.trim(), parentId });
-      success('文件夹创建成功');
+      toast({ description: '文件夹创建成功' });
       setNewFolderName('');
       setCreatingFolder(false);
       loadFolders();
@@ -54,33 +61,49 @@ export default function FoldersPage() {
         setExpandedFolders(prev => new Set(prev).add(parentId));
       }
     } catch (err: any) {
-      showError(err.message || '创建文件夹失败');
+      toast({
+        title: "错误",
+        description: err.message || '创建文件夹失败',
+        variant: "destructive"
+      });
     }
   };
 
   const handleDeleteFolder = async (id: string) => {
     try {
       await folderService.delete(id);
-      success('文件夹已删除');
+      toast({ description: '文件夹已删除' });
       loadFolders();
     } catch (err: any) {
-      showError(err.message || '删除失败，文件夹可能不为空');
+      toast({
+        title: "错误",
+        description: err.message || '删除失败，文件夹可能不为空',
+        variant: "destructive"
+      });
     }
   };
 
   const handleUpdateFolder = async (id: string) => {
     if (!editingName.trim()) {
-      showError('请输入文件夹名称');
+      toast({
+        title: "提示",
+        description: '请输入文件夹名称',
+        variant: "destructive"
+      });
       return;
     }
 
     try {
       await folderService.update(id, { name: editingName.trim() });
-      success('文件夹已重命名');
+      toast({ description: '文件夹已重命名' });
       setEditingFolderId(null);
       loadFolders();
     } catch (err: any) {
-      showError(err.message || '重命名失败');
+      toast({
+        title: "错误",
+        description: err.message || '重命名失败',
+        variant: "destructive"
+      });
     }
   };
 
@@ -103,7 +126,11 @@ export default function FoldersPage() {
       const result = await documentService.getList({ folderId });
       setFolderDocuments(result.list || []);
     } catch (err: any) {
-      showError(err.message || '加载文档失败');
+      toast({
+        title: "错误",
+        description: err.message || '加载文档失败',
+        variant: "destructive"
+      });
     }
   };
 

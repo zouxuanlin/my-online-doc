@@ -14,6 +14,9 @@ export interface Document {
   archivedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  _count?: {
+    versions: number;
+  };
 }
 
 export interface CreateDocumentInput {

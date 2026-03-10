@@ -7,7 +7,6 @@ import { useToast } from '@/components/ui/toaster';
 import { documentService } from '@/services/document.service';
 import { tagService } from '@/services/tag.service';
 import { TagSelector } from '@/components/TagSelector';
-import type { Document } from '@/services/document.service';
 import type { Tag } from '@/services/tag.service';
 import MDEditor from '@uiw/react-md-editor';
 import { useThemeStore } from '@/stores/themeStore';
@@ -15,9 +14,8 @@ import { useThemeStore } from '@/stores/themeStore';
 export default function DocumentEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { success, error: showError } = useToast();
+  const { toast } = useToast();
   const { theme } = useThemeStore();
-  const [document, setDocument] = useState<Document | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -42,12 +40,15 @@ export default function DocumentEditPage() {
       setLoading(true);
       const doc = await documentService.getById(id);
       const tags = await tagService.getDocumentTags(id);
-      setDocument(doc);
       setTitle(doc.title);
       setContent(doc.content || '');
       setSelectedTags(tags.map((t: Tag) => t.id));
     } catch (err: any) {
-      showError(err.message || '加载文档失败');
+      toast({
+        title: "错误",
+        description: err.message || '加载文档失败',
+        variant: "destructive"
+      });
       navigate('/documents');
     } finally {
       setLoading(false);
@@ -59,15 +60,19 @@ export default function DocumentEditPage() {
       setSaving(true);
       if (id === 'new') {
         const doc = await documentService.create({ title, content, tagIds: selectedTags });
-        success('文档创建成功');
+        toast({ description: '文档创建成功' });
         navigate(`/documents/${doc.id}`);
       } else if (id) {
         await documentService.update(id, { title, content });
         await tagService.updateDocumentTags(id, selectedTags);
-        success('文档保存成功');
+        toast({ description: '文档保存成功' });
       }
     } catch (err: any) {
-      showError(err.message || '保存失败');
+      toast({
+        title: "错误",
+        description: err.message || '保存失败',
+        variant: "destructive"
+      });
     } finally {
       setSaving(false);
     }
