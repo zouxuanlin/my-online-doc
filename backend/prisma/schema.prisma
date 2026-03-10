@@ -27,6 +27,7 @@ model User {
   refreshTokens RefreshToken[]
   tags          Tag[]
   bookmarks     Bookmark[]
+  operationLogs OperationLog[]
 }
 
 // 刷新 Token 模型
@@ -159,6 +160,26 @@ model Bookmark {
   @@unique([userId, documentId])
   @@index([userId])
   @@index([documentId])
+}
+
+// 操作日志模型
+model OperationLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String   // CREATE, UPDATE, DELETE, ARCHIVE, UNARCHIVE, RESTORE, EXPORT, etc.
+  entityType String   // DOCUMENT, FOLDER, TAG, USER, etc.
+  entityId   String?
+  details    String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
 }
 
 // 权限枚举
