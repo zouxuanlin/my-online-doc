@@ -4,6 +4,8 @@ import { Tag } from '@prisma/client';
 
 export interface CreateTagInput {
   name: string;
+  parentId?: string;
+  color?: string;
 }
 
 // 创建标签
@@ -13,6 +15,8 @@ export async function createTag(ownerId: string, input: CreateTagInput): Promise
       data: {
         name: input.name.trim(),
         ownerId,
+        parentId: input.parentId,
+        color: input.color || '#3b82f6',
       },
     });
   } catch (error: any) {
@@ -23,8 +27,29 @@ export async function createTag(ownerId: string, input: CreateTagInput): Promise
   }
 }
 
-// 获取用户所有标签
-export async function getUserTags(ownerId: string): Promise<Tag[]> {
+// 获取用户所有标签（树形结构）
+export async function getUserTags(ownerId: string): Promise<any[]> {
+  const tags = await prisma.tag.findMany({
+    where: { ownerId, parentId: null },
+    orderBy: { name: 'asc' },
+    include: {
+      _count: {
+        select: { documents: true },
+      },
+      children: {
+        include: {
+          _count: {
+            select: { documents: true },
+          },
+        },
+      },
+    },
+  });
+  return tags;
+}
+
+// 获取所有标签（扁平列表）
+export async function getAllTags(ownerId: string): Promise<any[]> {
   return await prisma.tag.findMany({
     where: { ownerId },
     orderBy: { name: 'asc' },
@@ -40,15 +65,20 @@ export async function getUserTags(ownerId: string): Promise<Tag[]> {
 export async function updateTag(
   tagId: string,
   ownerId: string,
-  input: { name?: string }
+  input: { name?: string; color?: string; parentId?: string | null }
 ): Promise<Tag> {
   const tag = await getTagById(tagId, ownerId);
 
-  if (input.name) {
+  const updateData: any = {};
+  if (input.name) updateData.name = input.name.trim();
+  if (input.color) updateData.color = input.color;
+  if (input.parentId !== undefined) updateData.parentId = input.parentId;
+
+  if (Object.keys(updateData).length > 0) {
     try {
       return await prisma.tag.update({
         where: { id: tagId },
-        data: { name: input.name.trim() },
+        data: updateData,
       });
     } catch (error: any) {
       if (error.code === 'P2002') {

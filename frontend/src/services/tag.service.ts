@@ -4,29 +4,32 @@ export interface Tag {
   id: string;
   name: string;
   ownerId: string;
+  parentId?: string | null;
+  color?: string;
   createdAt: string;
   updatedAt: string;
   _count?: {
     documents: number;
   };
+  children?: Tag[];
 }
 
 export const tagService = {
   // 创建标签
-  async create(name: string) {
-    const response = await apiClient.post('/tags', { name });
+  async create(name: string, parentId?: string, color?: string) {
+    const response = await apiClient.post('/tags', { name, parentId, color });
     return response.data.data.tag;
   },
 
   // 获取所有标签
-  async getAll() {
-    const response = await apiClient.get('/tags');
+  async getAll(flat?: boolean) {
+    const response = await apiClient.get('/tags', { params: { flat } });
     return response.data.data.tags;
   },
 
   // 更新标签
-  async update(id: string, name: string) {
-    const response = await apiClient.put(`/tags/${id}`, { name });
+  async update(id: string, data: { name?: string; color?: string; parentId?: string | null }) {
+    const response = await apiClient.put(`/tags/${id}`, data);
     return response.data.data.tag;
   },
 

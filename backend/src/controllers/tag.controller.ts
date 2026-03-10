@@ -6,13 +6,13 @@ import { AppError } from '../middleware/error.middleware';
 export const createTag = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = (req as any).user;
-    const { name } = req.body;
+    const { name, parentId, color } = req.body;
 
     if (!name || !name.trim()) {
       throw new AppError('INVALID_INPUT', '标签名称不能为空', 400);
     }
 
-    const tag = await tagService.createTag(user.userId, { name });
+    const tag = await tagService.createTag(user.userId, { name, parentId, color });
 
     res.status(201).json({
       code: 'SUCCESS',
@@ -28,8 +28,11 @@ export const createTag = async (req: Request, res: Response, next: NextFunction)
 export const getTags = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = (req as any).user;
+    const { flat } = req.query;
 
-    const tags = await tagService.getUserTags(user.userId);
+    const tags = flat === 'true'
+      ? await tagService.getAllTags(user.userId)
+      : await tagService.getUserTags(user.userId);
 
     res.json({
       code: 'SUCCESS',
@@ -45,9 +48,9 @@ export const updateTag = async (req: Request, res: Response, next: NextFunction)
   try {
     const user = (req as any).user;
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, color, parentId } = req.body;
 
-    const tag = await tagService.updateTag(id, user.userId, { name });
+    const tag = await tagService.updateTag(id, user.userId, { name, color, parentId });
 
     res.json({
       code: 'SUCCESS',

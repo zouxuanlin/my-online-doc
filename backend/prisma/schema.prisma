@@ -120,13 +120,17 @@ model Tag {
   name      String
   ownerId   String
   owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Tag?     @relation("TagHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Tag[]    @relation("TagHierarchy")
+  color     String?  @default("#3b82f6")
+  documents DocumentTag[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  documents DocumentTag[]
-
   @@unique([ownerId, name])
   @@index([ownerId])
+  @@index([parentId])
 }
 
 // 文档与标签的关联模型 (多对多)
