@@ -27,6 +27,7 @@ import ShareDialog from '@/components/ShareDialog';
 import VersionDiffViewer from '@/components/VersionDiffViewer';
 import Backlinks from '@/components/Backlinks';
 import CommentSection from '@/components/CommentSection';
+import MarkdownPreview from '@/components/MarkdownPreview';
 import type { Document } from '@/services/document.service';
 
 export default function DocumentDetailPage() {
@@ -299,9 +300,7 @@ export default function DocumentDetailPage() {
       </div>
       <div className="p-6">
         <div className="prose max-w-none">
-          <pre className="whitespace-pre-wrap font-sans text-base">
-            {document.content || '无内容'}
-          </pre>
+          <MarkdownPreview content={document.content || ''} />
         </div>
       </div>
 
