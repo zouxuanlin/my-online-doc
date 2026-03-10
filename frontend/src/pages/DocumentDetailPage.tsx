@@ -26,6 +26,7 @@ import { exportDocument } from '@/services/export.service';
 import ShareDialog from '@/components/ShareDialog';
 import VersionDiffViewer from '@/components/VersionDiffViewer';
 import Backlinks from '@/components/Backlinks';
+import CommentSection from '@/components/CommentSection';
 import type { Document } from '@/services/document.service';
 
 export default function DocumentDetailPage() {
@@ -308,6 +309,9 @@ export default function DocumentDetailPage() {
       <div className="border-t p-6">
         <Backlinks documentId={id!} />
       </div>
+
+      {/* 评论区 */}
+      <CommentSection documentId={id!} />
 
       {/* 相关文档推荐 */}
       {relatedDocuments.length > 0 && (

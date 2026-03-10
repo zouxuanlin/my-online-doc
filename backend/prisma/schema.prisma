@@ -29,6 +29,7 @@ model User {
   bookmarks     Bookmark[]
   operationLogs OperationLog[]
   templates     Template[]
+  comments      Comment[]
 }
 
 // 刷新 Token 模型
@@ -64,6 +65,7 @@ model Document {
   shares    Share[]
   tags      DocumentTag[]
   bookmarks Bookmark[]
+  comments  Comment[]
 
   @@index([ownerId])
   @@index([folderId])
@@ -204,6 +206,26 @@ model Template {
 
   @@index([ownerId])
   @@index([isPublic])
+}
+
+// 评论模型
+model Comment {
+  id         String   @id @default(cuid())
+  content    String
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    Comment[] @relation("CommentReplies")
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([documentId])
+  @@index([userId])
+  @@index([parentId])
 }
 
 // 权限枚举

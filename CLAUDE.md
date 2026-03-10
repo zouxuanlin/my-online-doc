@@ -192,6 +192,28 @@ model Bookmark {
 }
 ```
 
+### Comment (评论)
+```prisma
+model Comment {
+  id         String   @id @default(cuid())
+  content    String
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    Comment[] @relation("CommentReplies")
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([documentId])
+  @@index([userId])
+  @@index([parentId])
+}
+```
+
 ### Tag (标签)
 ```prisma
 model Tag {
@@ -326,6 +348,13 @@ npm run dev
 - `POST /api/v1/import/markdown` - 导入 Markdown 文件
 - `POST /api/v1/import/files` - 批量导入文件
 
+### 评论
+- `GET /api/v1/comments/documents/:documentId` - 获取文档评论列表
+- `POST /api/v1/comments` - 创建评论
+- `GET /api/v1/comments/:id` - 获取评论详情
+- `PUT /api/v1/comments/:id` - 更新评论
+- `DELETE /api/v1/comments/:id` - 删除评论
+
 ## 待开发功能
 
 ### 核心功能
@@ -336,7 +365,7 @@ npm run dev
 - [x] 全文搜索
 - [x] 高级筛选（按日期/作者/标签/文件夹）
 - [ ] 文档协作（实时编辑）
-- [ ] 评论和批注功能
+- [x] 评论和批注功能
 - [x] 文档分享功能（公开链接/密码保护/限期访问）
 - [ ] 细粒度权限控制（读/写/评论/管理）
 - [ ] 团队空间
