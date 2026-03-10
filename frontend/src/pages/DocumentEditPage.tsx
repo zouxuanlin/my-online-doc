@@ -25,6 +25,7 @@ export default function DocumentEditPage() {
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(false);
   const [useRichText, setUseRichText] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (id === 'new') {
@@ -42,6 +43,13 @@ export default function DocumentEditPage() {
       loadDocument();
     }
   }, [id, location.state]);
+
+  // 监听内容变化，标记是否有未保存的更改
+  useEffect(() => {
+    if (!loading) {
+      setHasChanges(true);
+    }
+  }, [title, content, selectedTags, loading]);
 
   const loadDocument = async () => {
     if (!id) return;
@@ -68,13 +76,14 @@ export default function DocumentEditPage() {
     try {
       setSaving(true);
       if (id === 'new') {
-        const doc = await documentService.create({ title, content, tagIds: selectedTags });
+        await documentService.create({ title, content, tagIds: selectedTags });
         toast({ description: '文档创建成功' });
-        navigate(`/documents/${doc.id}`);
+        navigate('/documents');
       } else if (id) {
         await documentService.update(id, { title, content });
         await tagService.updateDocumentTags(id, selectedTags);
         toast({ description: '文档保存成功' });
+        navigate('/documents');
       }
     } catch (err: any) {
       toast({
@@ -84,6 +93,17 @@ export default function DocumentEditPage() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (hasChanges) {
+      // 有未保存的更改，确认后返回
+      if (confirm('有未保存的更改，确定要放弃吗？')) {
+        navigate('/documents');
+      }
+    } else {
+      navigate('/documents');
     }
   };
 
@@ -104,7 +124,7 @@ export default function DocumentEditPage() {
       <div className="border-b px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate('/documents')}>
+            <Button variant="ghost" onClick={handleBack}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               返回
             </Button>
