@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit2, Clock, Star, Download, FileText, Globe, Link } from 'lucide-react';
+import { ArrowLeft, Edit2, Clock, Star, Download, FileText, Globe, Link, Share, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -23,6 +23,9 @@ import { useRecentStore } from '@/stores/recentStore';
 import { bookmarkService } from '@/services/bookmark.service';
 import { documentService } from '@/services/document.service';
 import { exportDocument } from '@/services/export.service';
+import ShareDialog from '@/components/ShareDialog';
+import VersionDiffViewer from '@/components/VersionDiffViewer';
+import Backlinks from '@/components/Backlinks';
 import type { Document } from '@/services/document.service';
 
 export default function DocumentDetailPage() {
@@ -36,6 +39,11 @@ export default function DocumentDetailPage() {
   const [relatedDocuments, setRelatedDocuments] = useState<Document[]>([]);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [customSlug, setCustomSlug] = useState('');
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
+  const [versions, setVersions] = useState<any[]>([]);
+  const [selectedVersions, setSelectedVersions] = useState<[any, any] | null>(null);
+  const [diffViewerOpen, setDiffViewerOpen] = useState(false);
 
   useEffect(() => {
     loadDocument();
@@ -49,6 +57,27 @@ export default function DocumentDetailPage() {
       loadRelatedDocuments();
     }
   }, [document]);
+
+  const loadVersions = async () => {
+    if (!id) return;
+    try {
+      const versionList = await documentService.getVersions(id);
+      setVersions(versionList);
+    } catch (err: any) {
+      // ignore error
+    }
+  };
+
+  const handleOpenVersionHistory = () => {
+    loadVersions();
+    setVersionHistoryOpen(true);
+  };
+
+  const handleCompareVersions = () => {
+    if (selectedVersions && selectedVersions[0] && selectedVersions[1]) {
+      setDiffViewerOpen(true);
+    }
+  };
 
   const checkBookmarkStatus = async () => {
     if (!id) return;
@@ -256,6 +285,14 @@ export default function DocumentDetailPage() {
               <Edit2 className="h-4 w-4 mr-2" />
               编辑
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setShareDialogOpen(true)}>
+              <Share className="h-4 w-4 mr-2" />
+              分享
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleOpenVersionHistory}>
+              <History className="h-4 w-4 mr-2" />
+              历史版本
+            </Button>
           </div>
         </div>
       </div>
@@ -265,6 +302,11 @@ export default function DocumentDetailPage() {
             {document.content || '无内容'}
           </pre>
         </div>
+      </div>
+
+      {/* 双向链接 */}
+      <div className="border-t p-6">
+        <Backlinks documentId={id!} />
       </div>
 
       {/* 相关文档推荐 */}
@@ -330,6 +372,110 @@ export default function DocumentDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 分享对话框 */}
+      <ShareDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        documentId={id!}
+        documentTitle={document.title}
+      />
+
+      {/* 版本历史对话框 */}
+      <Dialog open={versionHistoryOpen} onOpenChange={setVersionHistoryOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>版本历史</DialogTitle>
+            <DialogDescription>
+              选择两个版本进行对比
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {versions.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">暂无版本历史</p>
+            ) : (
+              <div className="space-y-2">
+                {versions.map((version) => (
+                  <div
+                    key={version.id}
+                    className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
+                      selectedVersions?.[0]?.id === version.id || selectedVersions?.[1]?.id === version.id
+                        ? 'bg-primary/10 border-primary'
+                        : 'hover:bg-muted'
+                    }`}
+                    onClick={() => {
+                      if (selectedVersions?.[0]?.id === version.id) {
+                        setSelectedVersions([null, selectedVersions[1]].filter(Boolean) as [any, any]);
+                      } else if (selectedVersions?.[1]?.id === version.id) {
+                        setSelectedVersions([selectedVersions[0], null].filter(Boolean) as [any, any]);
+                      } else if (!selectedVersions || selectedVersions.length < 2) {
+                        const newSelection = selectedVersions
+                          ? [...selectedVersions, version]
+                          : [version];
+                        setSelectedVersions(newSelection as [any, any]);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
+                        selectedVersions?.[0]?.id === version.id || selectedVersions?.[1]?.id === version.id
+                          ? 'border-primary bg-primary text-white'
+                          : 'border-muted-foreground'
+                      }`}>
+                        {(selectedVersions?.[0]?.id === version.id || selectedVersions?.[1]?.id === version.id) && (
+                          <span className="text-xs">✓</span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">版本 {version.version}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(version.createdAt).toLocaleString('zh-CN')}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // 回滚到该版本的逻辑可以在这里添加
+                      }}
+                    >
+                      回滚
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setVersionHistoryOpen(false)}
+            >
+              取消
+            </Button>
+            <Button
+              onClick={handleCompareVersions}
+              disabled={!selectedVersions || selectedVersions.length !== 2}
+            >
+              对比所选版本
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 版本对比查看器 */}
+      <VersionDiffViewer
+        open={diffViewerOpen}
+        onOpenChange={setDiffViewerOpen}
+        oldContent={selectedVersions?.[0]?.content || ''}
+        newContent={selectedVersions?.[1]?.content || ''}
+        oldVersion={`v${selectedVersions?.[0]?.version}`}
+        newVersion={`v${selectedVersions?.[1]?.version}`}
+      />
     </div>
   );
 }

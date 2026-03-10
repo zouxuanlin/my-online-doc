@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Eye, EyeOff } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft, Save, Eye, EyeOff, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toaster';
@@ -10,10 +10,12 @@ import { TagSelector } from '@/components/TagSelector';
 import type { Tag } from '@/services/tag.service';
 import MDEditor from '@uiw/react-md-editor';
 import { useThemeStore } from '@/stores/themeStore';
+import RichTextEditor from '@/components/RichTextEditor';
 
 export default function DocumentEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { theme } = useThemeStore();
   const [title, setTitle] = useState('');
@@ -22,17 +24,24 @@ export default function DocumentEditPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(false);
+  const [useRichText, setUseRichText] = useState(false);
 
   useEffect(() => {
     if (id === 'new') {
-      // 新建文档
-      setTitle('新文档');
-      setContent('');
+      // 检查是否从模板创建
+      const templateData = location.state as any;
+      if (templateData?.title || templateData?.content) {
+        setTitle(templateData.title || '新文档');
+        setContent(templateData.content || '');
+      } else {
+        setTitle('新文档');
+        setContent('');
+      }
       setLoading(false);
     } else {
       loadDocument();
     }
-  }, [id]);
+  }, [id, location.state]);
 
   const loadDocument = async () => {
     if (!id) return;
@@ -118,24 +127,48 @@ export default function DocumentEditPage() {
       <div className="flex-1 overflow-auto p-6">
         <div className="h-full">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Markdown 编辑模式</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPreview(!preview)}
-            >
-              {preview ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-              {preview ? '编辑' : '预览'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                {useRichText ? '富文本编辑模式' : 'Markdown 编辑模式'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setUseRichText(!useRichText)}
+              >
+                {useRichText ? '切换到 Markdown' : '切换到富文本'}
+              </Button>
+              {!useRichText && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPreview(!preview)}
+                >
+                  {preview ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                  {preview ? '编辑' : '预览'}
+                </Button>
+              )}
+            </div>
           </div>
-          <MDEditor
-            value={content}
-            onChange={(val) => setContent(val || '')}
-            preview={preview ? 'preview' : 'edit'}
-            height="100%"
-            enableScroll={true}
-            data-color-mode={theme}
-          />
+          {useRichText ? (
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
+              editable={!preview}
+            />
+          ) : (
+            <MDEditor
+              value={content}
+              onChange={(val) => setContent(val || '')}
+              preview={preview ? 'preview' : 'edit'}
+              height="100%"
+              enableScroll={true}
+              data-color-mode={theme}
+            />
+          )}
         </div>
       </div>
     </div>

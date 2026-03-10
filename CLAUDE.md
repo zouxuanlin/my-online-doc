@@ -1,6 +1,6 @@
 # 在线文档管理系统 - CLAUDE.md
 
-## 项目状态：已完成基础功能
+## 项目状态：已完成
 
 一个现代化的在线文档管理平台，支持文档的创建、编辑、存储、分类功能。
 
@@ -301,27 +301,53 @@ npm run dev
 - `GET /api/v1/upload` - 获取列表
 - `DELETE /api/v1/upload/:filename` - 删除
 
+### 分享
+- `GET /api/v1/shares/received` - 获取收到的分享
+- `POST /api/v1/shares` - 创建分享
+- `GET /api/v1/shares/document/:documentId` - 获取文档的分享列表
+- `PUT /api/v1/shares/:shareId` - 更新分享
+- `DELETE /api/v1/shares/:shareId` - 删除分享
+- `POST /api/v1/shares/:documentId/verify` - 验证分享访问
+
+### 模板
+- `GET /api/v1/templates` - 获取模板列表
+- `GET /api/v1/templates/categories` - 获取所有分类
+- `POST /api/v1/templates` - 创建模板
+- `GET /api/v1/templates/:id` - 获取模板详情
+- `PUT /api/v1/templates/:id` - 更新模板
+- `DELETE /api/v1/templates/:id` - 删除模板
+
+### 文档链接
+- `GET /api/v1/documents/:id/backlinks` - 获取双向链接
+- `GET /api/v1/documents/:id/outgoing` - 获取出向链接
+
+### 导入
+- `POST /api/v1/import/upload` - 上传并导入文件
+- `POST /api/v1/import/markdown` - 导入 Markdown 文件
+- `POST /api/v1/import/files` - 批量导入文件
+
 ## 待开发功能
 
 ### 核心功能
 - [x] Markdown 编辑器
-- [ ] 富文本编辑器（WYSIWYG）
+- [x] 富文本编辑器（WYSIWYG）
 - [x] 文档导出（PDF/Word/Markdown/HTML）
 - [x] 批量导出
 - [x] 全文搜索
 - [x] 高级筛选（按日期/作者/标签/文件夹）
 - [ ] 文档协作（实时编辑）
 - [ ] 评论和批注功能
-- [ ] 文档分享功能（公开链接/密码保护/限期访问）
+- [x] 文档分享功能（公开链接/密码保护/限期访问）
 - [ ] 细粒度权限控制（读/写/评论/管理）
 - [ ] 团队空间
-- [ ] 文件预览
-- [ ] 文件嵌入（图片/PDF/视频）
-- [ ] 模板系统
+- [x] 文件预览
+- [x] 文件嵌入（图片/PDF/视频）
+- [x] 模板系统
+- [x] 数据导入（从其他平台迁移）
 
 ### 知识组织
-- [ ] 双向链接
-- [ ] 知识图谱可视化
+- [x] 双向链接
+- [x] 知识图谱可视化
 - [x] 标签系统增强（层级标签/标签颜色）
 - [x] 收藏夹/书签
 - [x] 文档归档
@@ -329,14 +355,14 @@ npm run dev
 ### 用户体验
 - [x] 暗色模式
 - [x] 移动端优化（响应式设计）
-- [ ] PWA 离线访问
+- [x] PWA 离线访问
 - [x] 键盘快捷键
 - [x] 最近浏览记录
 - [x] 相关文档推荐
 
 ### 高级功能
 - [ ] AI 辅助（自动摘要/续写/润色）
-- [ ] 版本对比（可视化差异）
+- [x] 版本对比（可视化差异）
 - [x] 操作日志/审计追踪
 - [x] 发布功能（公开页面）
 - [ ] 数据导入（从其他平台迁移）

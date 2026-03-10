@@ -140,4 +140,16 @@ export const documentService = {
     const response = await apiClient.get(`/documents/public/${slug}`);
     return response.data.data.document;
   },
+
+  // 获取双向链接（哪些文档链接到当前文档）
+  async getBacklinks(id: string) {
+    const response = await apiClient.get(`/documents/${id}/backlinks`);
+    return response.data.data.backlinks;
+  },
+
+  // 获取出向链接（当前文档链接到其他文档）
+  async getOutgoingLinks(id: string) {
+    const response = await apiClient.get(`/documents/${id}/outgoing`);
+    return response.data.data.outgoingLinks;
+  },
 };

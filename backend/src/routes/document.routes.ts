@@ -57,4 +57,10 @@ router.get('/archive', documentController.getDocumentList);
 // 公开访问文档（通过 slug）
 router.get('/public/:slug', documentController.getDocumentBySlug);
 
+// 获取双向链接
+router.get('/:id/backlinks', documentController.getBacklinks);
+
+// 获取出向链接
+router.get('/:id/outgoing', documentController.getOutgoingLinks);
+
 export default router;

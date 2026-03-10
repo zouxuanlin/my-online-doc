@@ -28,6 +28,7 @@ model User {
   tags          Tag[]
   bookmarks     Bookmark[]
   operationLogs OperationLog[]
+  templates     Template[]
 }
 
 // 刷新 Token 模型
@@ -112,10 +113,11 @@ model Share {
   sharedWithEmail String
   sharedWith  User     @relation("SharedWith", fields: [sharedWithEmail], references: [email])
   permission  String   @default("READ")
+  password    String?  // 分享密码（可选）
+  expiresAt   DateTime? // 过期时间（可选）
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@unique([documentId, sharedWithEmail])
   @@index([documentId])
   @@index([sharedWithEmail])
 }
@@ -185,6 +187,23 @@ model OperationLog {
   @@index([entityType, entityId])
   @@index([action])
   @@index([createdAt])
+}
+
+// 模板模型
+model Template {
+  id          String   @id @default(cuid())
+  title       String
+  content     String?
+  description String?
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  category    String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([isPublic])
 }
 
 // 权限枚举

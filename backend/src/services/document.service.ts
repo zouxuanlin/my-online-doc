@@ -512,3 +512,94 @@ export async function getUserPublishedDocuments(userId: string): Promise<Documen
     orderBy: { publishedAt: 'desc' },
   });
 }
+
+// 提取文档中的双向链接（[[文档名]] 格式）
+export async function extractBacklinks(content: string): Promise<string[]> {
+  if (!content) return [];
+
+  // 匹配 [[文档名]] 格式
+  const regex = /\[\[(.*?)\]\]/g;
+  const matches: string[] = [];
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    matches.push(match[1]);
+  }
+
+  return [...new Set(matches)]; // 去重
+}
+
+// 获取文档的双向链接（哪些文档链接到当前文档）
+export async function getBacklinks(documentId: string, userId: string) {
+  // 获取当前文档
+  const currentDoc = await prisma.document.findFirst({
+    where: {
+      id: documentId,
+      ownerId: userId,
+    },
+    select: { title: true },
+  });
+
+  if (!currentDoc) {
+    throw new AppError('DOCUMENT_NOT_FOUND', '文档不存在', 404);
+  }
+
+  // 查找链接到当前文档的其他文档
+  const linkingDocs = await prisma.document.findMany({
+    where: {
+      ownerId: userId,
+      id: { not: documentId },
+      isDeleted: false,
+      content: {
+        contains: `[[${currentDoc.title}]]`,
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      updatedAt: true,
+    },
+  });
+
+  return linkingDocs;
+}
+
+// 获取文档链接到的其他文档（出链）
+export async function getOutgoingLinks(documentId: string, userId: string) {
+  const currentDoc = await prisma.document.findFirst({
+    where: {
+      id: documentId,
+      ownerId: userId,
+    },
+    select: { content: true },
+  });
+
+  if (!currentDoc) {
+    throw new AppError('DOCUMENT_NOT_FOUND', '文档不存在', 404);
+  }
+
+  // 提取文档中的所有链接
+  const linkTitles = await extractBacklinks(currentDoc.content || '');
+
+  if (linkTitles.length === 0) {
+    return [];
+  }
+
+  // 查找这些标题对应的文档
+  const outgoingLinks = await prisma.document.findMany({
+    where: {
+      ownerId: userId,
+      title: {
+        in: linkTitles,
+      },
+      isDeleted: false,
+    },
+    select: {
+      id: true,
+      title: true,
+      updatedAt: true,
+    },
+  });
+
+  return outgoingLinks;
+}

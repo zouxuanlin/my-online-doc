@@ -11,6 +11,9 @@ import uploadRoutes from './routes/upload.routes';
 import tagRoutes from './routes/tag.routes';
 import bookmarkRoutes from './routes/bookmark.routes';
 import operationLogRoutes from './routes/operation-log.routes';
+import shareRoutes from './routes/share.routes';
+import templateRoutes from './routes/template.routes';
+import importRoutes from './routes/import.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { authMiddleware } from './middleware/auth.middleware';
 
@@ -42,6 +45,9 @@ app.use('/api/v1/upload', authMiddleware, uploadRoutes);
 app.use('/api/v1/tags', authMiddleware, tagRoutes);
 app.use('/api/v1/bookmarks', authMiddleware, bookmarkRoutes);
 app.use('/api/v1/logs', authMiddleware, operationLogRoutes);
+app.use('/api/v1/shares', authMiddleware, shareRoutes);
+app.use('/api/v1/templates', authMiddleware, templateRoutes);
+app.use('/api/v1/import', authMiddleware, importRoutes);
 
 // 健康检查
 app.get('/health', (req, res) => {

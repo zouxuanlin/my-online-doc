@@ -316,3 +316,37 @@ export const getDocumentBySlug = async (req: Request, res: Response) => {
     throw error;
   }
 };
+
+// 获取双向链接
+export const getBacklinks = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const { id } = req.params;
+
+    const backlinks = await documentService.getBacklinks(id, user.userId);
+
+    res.json({
+      code: 'SUCCESS',
+      data: { backlinks },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 获取出向链接
+export const getOutgoingLinks = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const { id } = req.params;
+
+    const outgoingLinks = await documentService.getOutgoingLinks(id, user.userId);
+
+    res.json({
+      code: 'SUCCESS',
+      data: { outgoingLinks },
+    });
+  } catch (error) {
+    throw error;
+  }
+};

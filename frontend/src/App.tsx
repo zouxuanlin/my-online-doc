@@ -11,6 +11,10 @@ import DocumentEditPage from '@/pages/DocumentEditPage';
 import FoldersPage from '@/pages/FoldersPage';
 import TagsPage from '@/pages/TagsPage';
 import BookmarksPage from '@/pages/BookmarksPage';
+import SharedWithMePage from '@/pages/SharedWithMePage';
+import KnowledgeGraphPage from '@/pages/KnowledgeGraphPage';
+import TemplatesPage from '@/pages/TemplatesPage';
+import ImportPage from '@/pages/ImportPage';
 import PublicDocumentPage from '@/pages/PublicDocumentPage';
 
 function App() {
@@ -128,6 +132,46 @@ function App() {
               <AuthGuard>
                 <MainLayout>
                   <BookmarksPage />
+                </MainLayout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/shared"
+            element={
+              <AuthGuard>
+                <MainLayout>
+                  <SharedWithMePage />
+                </MainLayout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/knowledge-graph"
+            element={
+              <AuthGuard>
+                <MainLayout>
+                  <KnowledgeGraphPage />
+                </MainLayout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/templates"
+            element={
+              <AuthGuard>
+                <MainLayout>
+                  <TemplatesPage />
+                </MainLayout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/import"
+            element={
+              <AuthGuard>
+                <MainLayout>
+                  <ImportPage />
                 </MainLayout>
               </AuthGuard>
             }

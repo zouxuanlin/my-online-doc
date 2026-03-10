@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun, Keyboard, Clock, X, Star, Menu } from 'lucide-react';
+import { FileText, LogOut, User, FolderOpen, Tag, Moon, Sun, Keyboard, Clock, X, Star, Menu, Share, Network, FileCode, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeStore } from '@/stores/themeStore';
@@ -69,8 +69,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const navItems = [
     { path: '/documents', icon: FileText, label: '我的文档' },
     { path: '/folders', icon: FolderOpen, label: '文件夹' },
+    { path: '/templates', icon: FileCode, label: '模板管理' },
+    { path: '/import', icon: Download, label: '数据导入' },
     { path: '/tags', icon: Tag, label: '标签管理' },
     { path: '/bookmarks', icon: Star, label: '我的收藏' },
+    { path: '/shared', icon: Share, label: '与我共享' },
+    { path: '/knowledge-graph', icon: Network, label: '知识图谱' },
   ];
 
   const NavigationContent = () => (
